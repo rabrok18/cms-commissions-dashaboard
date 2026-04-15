@@ -1,0 +1,24 @@
+[build]
+  functions = "netlify/functions"
+  publish    = "public"
+  command    = "npm install"
+
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "ADMIN_PASSWORD"
+
+[[redirects]]
+  from   = "/"
+  to     = "/commission-dashboard.html"
+  status = 200
+
+[[redirects]]
+  from   = "/api/proxy"
+  to     = "/.netlify/functions/proxy"
+  status = 200
+  force  = true
+
+[[redirects]]
+  from   = "/api/commission"
+  to     = "/.netlify/functions/commission"
+  status = 200
+  force  = true
