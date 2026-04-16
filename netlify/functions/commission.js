@@ -1,4 +1,3 @@
-
 // commission.js — user management + commission config via Netlify Blobs
 const { getStore } = require('@netlify/blobs');
 
@@ -24,6 +23,16 @@ exports.handler = async (event) => {
   try {
 
     // ── PUBLIC: login check ──────────────────────────────
+    // DEBUG - remove after testing
+    if (action === 'debug') {
+      return { statusCode: 200, headers: H, body: JSON.stringify({
+        adminPwSet: !!adminPw,
+        adminPwLength: adminPw ? adminPw.length : 0,
+        adminPwFirst3: adminPw ? adminPw.slice(0,3) : '',
+        bodyReceived: body,
+      })};
+    }
+
     if (action === 'login') {
       const pw = body.password || '';
 
