@@ -87,6 +87,7 @@ body{font-family:'Sora',sans-serif;background:var(--surface2);color:var(--text);
   color:rgba(255,255,255,.6);border-radius:7px;padding:5px 10px;
   font-family:inherit;font-size:11px;cursor:pointer;outline:none;
 }
+.tb-period option{background:var(--ink);color:#fff}
 .tb-sync-status{font-size:10px;color:rgba(255,255,255,.25);margin-right:4px}
 
 /* SUBNAV */
@@ -669,6 +670,13 @@ function syncBase()  { return proxyBase() + '/.netlify/functions/sync'; }
 
 // ── UTILS ─────────────────────────────────────────────────
 function fmt(n) { return '$' + Math.round(n || 0).toLocaleString('en-US'); }
+function empName(e) {
+  // BuildOps may use different field names — check them all
+  var first = e.firstName || e.first_name || '';
+  var last = e.lastName || e.last_name || '';
+  var full = [first, last].filter(Boolean).join(' ');
+  return full || e.name || e.displayName || e.fullName || e.id;
+}
 function fd(d) { if (!d || !(d instanceof Date) || isNaN(d)) return '—'; return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
 function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 function csvQ(s) { return '"' + String(s || '').replace(/"/g, '""') + '"'; }
@@ -809,18 +817,43 @@ async function loadData() {
 
       empMap = {};
       (empData.items || []).forEach(function(e) {
-        if (e && e.id) empMap[e.id] = [e.firstName || '', e.lastName || ''].filter(Boolean).join(' ') || e.id;
+        if (e && e.id) empMap[e.id] = empName(e);
       });
+
+      // If employee cache is empty, fall back to live proxy
+      if (Object.keys(empMap).length === 0) {
+        console.warn('Employee cache empty — fetching live');
+        try {
+          var empLive = await fetchAllLive('/v1/employees');
+          empLive.forEach(function(e) {
+            if (e && e.id) empMap[e.id] = empName(e);
+          });
+          console.log('Live employee fetch:', Object.keys(empMap).length, 'mapped');
+        } catch (e) { console.warn('Employee live fallback failed:', e.message); }
+      }
 
       custMap = {};
       (custData.items || []).forEach(function(c) { if (c && c.id) custMap[c.id] = c; });
+
+      // If customer cache is empty, fall back to live proxy
+      if (Object.keys(custMap).length === 0) {
+        console.warn('Customer cache empty — fetching live');
+        try {
+          var custLive = await fetchAllLive('/v1/customers');
+          custLive.forEach(function(c) { if (c && c.id) custMap[c.id] = c; });
+        } catch (e) { console.warn('Customer live fallback failed:', e.message); }
+      }
 
       // Show sync timestamp
       var statusRes = await fetch(commBase() + '?action=syncStatus');
       var statusData = await statusRes.json();
       if (statusData.syncedAt) {
         var syncDate = new Date(statusData.syncedAt);
-        document.getElementById('sync-status').textContent = 'Synced ' + syncDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' + syncDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+        var statusText = 'Synced ' + syncDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' + syncDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+        var errKeys = Object.keys(statusData.errors || {});
+        if (errKeys.length) statusText += ' ⚠ ' + errKeys.join(', ') + ' failed';
+        document.getElementById('sync-status').textContent = statusText;
+        if (errKeys.length) console.warn('Sync errors:', statusData.errors);
       }
     } else {
       // No cache — fall back to live proxy
@@ -854,15 +887,15 @@ async function loadDataLive() {
 
   empMap = {};
   try {
-    var ed = await callProxy('/v1/employees?page=0&page_size=200');
+    var ed = await callProxy('/v1/employees?page=0&page_size=200&pageSize=200');
     (ed.items || []).forEach(function(e) {
-      if (e && e.id) empMap[e.id] = [e.firstName || '', e.lastName || ''].filter(Boolean).join(' ') || e.id;
+      if (e && e.id) empMap[e.id] = empName(e);
     });
   } catch (e) { console.warn('Employees:', e.message); }
 
   custMap = {};
   try {
-    var cd = await callProxy('/v1/customers?page=0&page_size=500');
+    var cd = await callProxy('/v1/customers?page=0&page_size=500&pageSize=500');
     (cd.items || []).forEach(function(c) { if (c && c.id) custMap[c.id] = c; });
   } catch (e) { console.warn('Customers:', e.message); }
 
@@ -876,11 +909,14 @@ async function fetchAllLive(ep) {
   var all = [], page = 0;
   while (true) {
     showDashLoading('Loading ' + ep.split('/v1/').pop().split('?')[0] + ' — ' + all.length + ' loaded…');
-    var d = await callProxy(ep + '?page=' + page + '&page_size=100');
+    var d = await callProxy(ep + '?page=' + page + '&page_size=100&pageSize=100');
     var items = Array.isArray(d) ? d : (d && Array.isArray(d.items) ? d.items : []);
     all = all.concat(items);
     var total = (d && d.query && d.query.totalCount) || (d && d.totalCount) || 0;
-    if (items.length < 100 || (total > 0 && all.length >= total)) break;
+    console.log('fetchAllLive page=' + page + ' got=' + items.length + ' total=' + all.length + ' apiTotal=' + total);
+    if (items.length === 0) break;
+    if (total > 0 && all.length >= total) break;
+    if (total === 0 && items.length < 100) break;
     page++;
   }
   return all;
@@ -910,8 +946,16 @@ async function triggerSync() {
     });
     var d = await res.json();
     if (!res.ok) throw new Error(d.error || 'Sync failed');
-    var msg = 'Synced: ' + Object.entries(d.counts || {}).map(function(e) { return e[0] + ': ' + e[1]; }).join(', ');
+    var counts = d.counts || {};
+    var errKeys = Object.keys(d.errors || {});
+    var msg = Object.entries(counts).map(function(e) { return e[0] + ': ' + e[1]; }).join(', ');
+    if (errKeys.length) msg += ' | FAILED: ' + errKeys.join(', ');
     document.getElementById('sync-status').textContent = msg;
+    console.log('Sync result:', d);
+    if (errKeys.length) {
+      console.error('Sync errors:', d.errors);
+      alert('Sync partial failure:\n' + Object.entries(d.errors).map(function(e) { return e[0] + ': ' + e[1]; }).join('\n'));
+    }
     // Reload from cache
     await loadData();
   } catch (err) {
@@ -1652,7 +1696,7 @@ async function loadBuildOpsEmployees() {
   document.getElementById('emp-list').innerHTML = '<div class="empty"><div class="empty-icon"><div class="spin dk"></div></div><p>Loading employees from BuildOps…</p></div>';
 
   try {
-    var d = await callProxy('/v1/employees?page=0&page_size=200');
+    var d = await callProxy('/v1/employees?page=0&page_size=200&pageSize=200');
     allBuildOpsEmployees = (d.items || []).filter(function(e) { return e && e.id && e.firstName; });
     allBuildOpsEmployees.sort(function(a, b) {
       return ((a.firstName || '') + (a.lastName || '')).localeCompare((b.firstName || '') + (b.lastName || ''));
