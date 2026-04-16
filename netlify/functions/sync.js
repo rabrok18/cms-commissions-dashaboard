@@ -32,10 +32,24 @@ exports.handler = async (event) => {
   const clientSec = process.env.BUILDOPS_CLIENT_SECRET || '';
 
   try {
+    // Initialize Blobs using explicit siteID + token (most reliable)
+    const siteId = process.env.NETLIFY_SITE_ID || process.env.SITE_ID || '';
+    const blobToken = process.env.NETLIFY_TOKEN || process.env.NETLIFY_ACCESS_TOKEN || process.env.NETLIFY_AUTH_TOKEN || '';
+    
+    console.log('[Sync] Blobs init — siteId present:', !!siteId, 'token present:', !!blobToken);
+    
     let store;
-    try { store = getStore({ name: 'commission', consistency: 'strong' }); }
-    catch(blobErr) { 
-      return { statusCode: 500, headers: H, body: JSON.stringify({ error: 'Blobs not configured: ' + blobErr.message }) };
+    if (siteId && blobToken) {
+      store = getStore({ name: 'commission', siteID: siteId, token: blobToken });
+    } else {
+      // Fall back to auto-detection (works when deployed via Netlify CI)
+      try {
+        store = getStore({ name: 'commission', consistency: 'strong' });
+      } catch(e) {
+        return { statusCode: 500, headers: H, body: JSON.stringify({
+          error: 'Blobs not configured. Add NETLIFY_SITE_ID and NETLIFY_TOKEN env vars. Site ID: ' + (siteId||'missing') + ', Token: ' + (blobToken?'present':'missing')
+        })};
+      }
     }
     // Log env var presence (not values)
     console.log('[Sync] Config check — apiUrl:', !!apiUrl, 'tenantId:', !!tenantId, 'clientId:', !!clientId, 'clientSec:', !!clientSec);
