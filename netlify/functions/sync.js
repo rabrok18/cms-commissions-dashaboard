@@ -1,7 +1,7 @@
 const { getStore } = require('@netlify/blobs');
 const https = require('https');
 
-// Netlify scheduled function - runs nightly at 2am ET
+// Netlify scheduled function — runs nightly at 2am ET
 exports.config = {
   schedule: '0 7 * * *' // 2am ET = 7am UTC
 };
@@ -16,86 +16,84 @@ exports.handler = async (event) => {
 
   if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers: H, body: '' };
 
-  // Manual trigger - check admin password if set
+  // Manual trigger — check admin password
   const adminPw = process.env.ADMIN_PASSWORD;
   if (event.httpMethod === 'POST' && adminPw) {
     const incoming = (event.headers && (event.headers['x-admin-password'] || event.headers['X-Admin-Password'])) || '';
-    console.log('[Sync] Admin auth check — header present:', !!incoming);
     if (incoming !== adminPw) {
       return { statusCode: 403, headers: H, body: JSON.stringify({ error: 'Admin access required' }) };
     }
   }
 
-  const apiUrl    = process.env.BUILDOPS_API_URL     || 'https://api.buildops.com';
-  const tenantId  = process.env.BUILDOPS_TENANT_ID   || '';
-  const clientId  = process.env.BUILDOPS_CLIENT_ID   || '';
+  const apiUrl = process.env.BUILDOPS_API_URL || 'https://api.buildops.com';
+  const tenantId = process.env.BUILDOPS_TENANT_ID || '';
+  const clientId = process.env.BUILDOPS_CLIENT_ID || '';
   const clientSec = process.env.BUILDOPS_CLIENT_SECRET || '';
 
   try {
-    // Initialize Blobs using explicit siteID + token (most reliable)
+    // Initialize Blobs
     const siteId = process.env.NETLIFY_SITE_ID || process.env.SITE_ID || '';
     const blobToken = process.env.NETLIFY_TOKEN || process.env.NETLIFY_ACCESS_TOKEN || process.env.NETLIFY_AUTH_TOKEN || '';
-    
-    console.log('[Sync] Blobs init — siteId present:', !!siteId, 'token present:', !!blobToken);
-    
+
     let store;
     if (siteId && blobToken) {
       store = getStore({ name: 'commission', siteID: siteId, token: blobToken });
     } else {
-      // Fall back to auto-detection (works when deployed via Netlify CI)
       try {
         store = getStore({ name: 'commission', consistency: 'strong' });
-      } catch(e) {
-        return { statusCode: 500, headers: H, body: JSON.stringify({
-          error: 'Blobs not configured. Add NETLIFY_SITE_ID and NETLIFY_TOKEN env vars. Site ID: ' + (siteId||'missing') + ', Token: ' + (blobToken?'present':'missing')
-        })};
+      } catch (e) {
+        return {
+          statusCode: 500, headers: H, body: JSON.stringify({
+            error: 'Blobs not configured. Set NETLIFY_SITE_ID and NETLIFY_TOKEN.'
+          })
+        };
       }
     }
-    // Log env var presence (not values)
-    console.log('[Sync] Config check — apiUrl:', !!apiUrl, 'tenantId:', !!tenantId, 'clientId:', !!clientId, 'clientSec:', !!clientSec);
+
+    console.log('[Sync] Config — apiUrl:', !!apiUrl, 'tenantId:', !!tenantId, 'clientId:', !!clientId, 'clientSec:', !!clientSec);
 
     if (!clientId || !clientSec) {
-      return { statusCode: 500, headers: H, body: JSON.stringify({ 
-        error: 'Missing BuildOps credentials. Set BUILDOPS_CLIENT_ID and BUILDOPS_CLIENT_SECRET in Netlify environment variables.' 
-      })};
+      return {
+        statusCode: 500, headers: H, body: JSON.stringify({
+          error: 'Missing BuildOps credentials. Set BUILDOPS_CLIENT_ID and BUILDOPS_CLIENT_SECRET.'
+        })
+      };
     }
 
     // Authenticate
     const token = await getToken(apiUrl, clientId, clientSec);
-    console.log('[Sync] Authenticated successfully');
+    console.log('[Sync] Authenticated');
 
-    // Fetch all data in parallel where possible
     const results = {};
-    const errors  = {};
+    const errors = {};
 
-    // Fetch employees and customers first (smaller, no pagination needed)
+    // Fetch employees and customers in parallel
     await Promise.all([
       fetchAll(apiUrl, token, tenantId, '/v1/employees', 200)
         .then(d => { results.employees = d; console.log('[Sync] Employees:', d.length); })
         .catch(e => { errors.employees = e.message; console.error('[Sync] Employees failed:', e.message); }),
-
       fetchAll(apiUrl, token, tenantId, '/v1/customers', 500)
         .then(d => { results.customers = d; console.log('[Sync] Customers:', d.length); })
         .catch(e => { errors.customers = e.message; console.error('[Sync] Customers failed:', e.message); }),
     ]);
 
-    // Fetch jobs, invoices, quotes (paginated, do sequentially to avoid rate limits)
+    // Fetch jobs, invoices, quotes sequentially to avoid rate limits
     for (const [key, path, pageSize] of [
-      ['jobs',     '/v1/jobs',     100],
+      ['jobs', '/v1/jobs', 100],
       ['invoices', '/v1/invoices', 100],
-      ['quotes',   '/v1/quotes',   100],
+      ['quotes', '/v1/quotes', 100],
     ]) {
       try {
         const data = await fetchAll(apiUrl, token, tenantId, path, pageSize);
         results[key] = data;
         console.log(`[Sync] ${key}:`, data.length);
-      } catch(e) {
+      } catch (e) {
         errors[key] = e.message;
         console.error(`[Sync] ${key} failed:`, e.message);
       }
     }
 
-    // Store each dataset in Blobs
+    // Store each dataset
     const syncedAt = new Date().toISOString();
     for (const [key, data] of Object.entries(results)) {
       await store.set('data:' + key, JSON.stringify(data));
@@ -105,14 +103,14 @@ exports.handler = async (event) => {
 
     const summary = {
       syncedAt,
-      counts: Object.fromEntries(Object.entries(results).map(([k,v]) => [k, v.length])),
+      counts: Object.fromEntries(Object.entries(results).map(([k, v]) => [k, v.length])),
       errors,
     };
     console.log('[Sync] Complete:', JSON.stringify(summary));
     return { statusCode: 200, headers: H, body: JSON.stringify(summary) };
 
-  } catch(err) {
-    console.error('[Sync] Fatal error:', err.message);
+  } catch (err) {
+    console.error('[Sync] Fatal:', err.message);
     return { statusCode: 500, headers: H, body: JSON.stringify({ error: err.message }) };
   }
 };
@@ -122,13 +120,12 @@ async function fetchAll(apiUrl, token, tenantId, path, pageSize) {
   while (true) {
     const url = apiUrl + path + '?page=' + page + '&page_size=' + pageSize;
     const raw = await apiGet(url, token, tenantId);
-    const d   = JSON.parse(raw);
+    const d = JSON.parse(raw);
     const items = Array.isArray(d) ? d : (d.items || []);
     all = all.concat(items);
     const total = (d.query && d.query.totalCount) || d.totalCount || 0;
     if (items.length < pageSize || (total > 0 && all.length >= total)) break;
     page++;
-    // Small delay to avoid rate limiting
     await new Promise(r => setTimeout(r, 100));
   }
   return all;
@@ -137,7 +134,7 @@ async function fetchAll(apiUrl, token, tenantId, path, pageSize) {
 function getToken(apiUrl, clientId, clientSecret) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({ clientId, clientSecret });
-    const url  = new URL(apiUrl + '/v1/auth/token');
+    const url = new URL(apiUrl + '/v1/auth/token');
     const opts = {
       hostname: url.hostname, path: url.pathname, method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
@@ -149,9 +146,9 @@ function getToken(apiUrl, clientId, clientSecret) {
         try {
           const j = JSON.parse(d);
           const t = j.access_token || j.token || j.accessToken;
-          if (!t) reject(new Error('No token: ' + d.slice(0, 100)));
+          if (!t) reject(new Error('No token in response'));
           else resolve(t);
-        } catch(e) { reject(e); }
+        } catch (e) { reject(e); }
       });
     });
     req.on('error', reject);
