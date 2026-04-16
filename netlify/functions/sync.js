@@ -118,15 +118,22 @@ exports.handler = async (event) => {
 async function fetchAll(apiUrl, token, tenantId, path, pageSize) {
   let all = [], page = 0;
   while (true) {
-    const url = apiUrl + path + '?page=' + page + '&page_size=' + pageSize;
+    // Send both param formats — BuildOps may use either
+    const url = apiUrl + path + '?page=' + page + '&page_size=' + pageSize + '&pageSize=' + pageSize;
     const raw = await apiGet(url, token, tenantId);
     const d = JSON.parse(raw);
     const items = Array.isArray(d) ? d : (d.items || []);
     all = all.concat(items);
     const total = (d.query && d.query.totalCount) || d.totalCount || 0;
-    if (items.length < pageSize || (total > 0 && all.length >= total)) break;
+    console.log('[Sync] page=' + page + ' got=' + items.length + ' total=' + all.length + ' apiTotal=' + total);
+    // Stop if no items returned
+    if (items.length === 0) break;
+    // Stop if we've reached the known total
+    if (total > 0 && all.length >= total) break;
+    // Stop only if no total reported AND we got fewer than requested
+    if (total === 0 && items.length < pageSize) break;
     page++;
-    await new Promise(r => setTimeout(r, 100));
+    await new Promise(r => setTimeout(r, 200));
   }
   return all;
 }
