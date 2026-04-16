@@ -364,10 +364,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
 
 /* ANIMATIONS */
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-input[type="date"]{color-scheme:dark}
-#custom-date-wrap input[type="date"]{background:#1e2d47;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:7px;padding:4px 8px;font-size:11px;outline:none;font-family:inherit}
-
 .tab.on{animation:fadeUp .2s ease both}
+input[type="date"]{color-scheme:dark}
+#custom-date-wrap input{background:#1e2d47!important;color:#fff!important;border:1px solid rgba(255,255,255,.2)!important;font-family:inherit}
 </style>
 </head>
 <body>
@@ -738,7 +737,16 @@ input[type="date"]{color-scheme:dark}
     </div>
     <div class="modal-footer">
       <button class="btn btn-o bsm" onclick="closeUserModal()">Cancel</button>
-      <button class="btn btn-p bsm" onclick="saveUser(
+      <button class="btn btn-p bsm" onclick="saveUser()">
+        <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Grant Access
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<script>
 // ── CONFIG ────────────────────────────────────────────────
 var SITE_URL = localStorage.getItem('cms-site-url') || '';
 var SESSION  = null;
@@ -800,6 +808,9 @@ async function initApp(){
   var syncBtn = document.getElementById('sync-btn');
   if(syncBtn) syncBtn.style.display = isAdmin ? 'inline-flex' : 'none';
 
+  var syncBtn=document.getElementById('sync-btn');
+  if(syncBtn) syncBtn.style.display=isAdmin?'inline-flex':'none';
+
   ['tab-users-btn','tab-payouts-btn','tab-rates-btn','tab-api-btn'].forEach(function(id){
     document.getElementById(id).classList.toggle('hidden', !isAdmin);
   });
@@ -850,46 +861,69 @@ function switchTab(t){
 async function loadData(){
   showDashLoading('Loading cached data…');
   try{
-    var ss = await fetch(commBase()+'?action=syncStatus');
-    var sd = await ss.json();
-    updateSyncStatus(sd.syncedAt, sd.errors);
-
+    var ss=await fetch(commBase()+'?action=syncStatus');
+    var sd=await ss.json();
+    updateSyncStatus(sd.syncedAt,sd.errors);
     if(!sd.syncedAt){
       document.getElementById('dash-body').innerHTML='<div class="empty"><div class="empty-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></div><p>No data cached yet.</p><p style="font-size:11px;margin-top:4px">Click <strong>Sync Now</strong> to pull data from BuildOps.</p></div>';
       return;
     }
-
     showDashLoading('Loading from cache…');
-    var results = await Promise.all([
+    var results=await Promise.all([
       fetch(commBase()+'?action=data&key=jobs').then(function(r){return r.json();}),
       fetch(commBase()+'?action=data&key=invoices').then(function(r){return r.json();}),
       fetch(commBase()+'?action=data&key=employees').then(function(r){return r.json();}),
       fetch(commBase()+'?action=data&key=customers').then(function(r){return r.json();}),
     ]);
-
-    jobs     = results[0].items || [];
-    invoices = results[1].items || [];
-
-    empMap = {};
+    jobs=results[0].items||[];
+    invoices=results[1].items||[];
+    empMap={};
     (results[2].items||[]).forEach(function(e){
-      if(e&&e.id){
-        empMap[e.id]=[e.firstName||'',e.lastName||''].filter(Boolean).join(' ').trim()||e.name||e.id;
-      }
+      if(e&&e.id) empMap[e.id]=[e.firstName||'',e.lastName||''].filter(Boolean).join(' ').trim()||e.name||e.id;
     });
-
-    custMap = {};
-    (results[3].items||[]).forEach(function(c){ if(c&&c.id) custMap[c.id]=c; });
-
-    console.log('[Commission] Cache loaded — jobs:',jobs.length,'invoices:',invoices.length,'employees:',Object.keys(empMap).length,'customers:',Object.keys(custMap).length);
-
+    custMap={};
+    (results[3].items||[]).forEach(function(c){if(c&&c.id) custMap[c.id]=c;});
+    console.log('[Commission] Loaded — jobs:',jobs.length,'invoices:',invoices.length,'employees:',Object.keys(empMap).length,'customers:',Object.keys(custMap).length);
     buildRepFilter();
     enrich();
     renderDash();
     renderPayoutPanel();
   }catch(err){
     document.getElementById('dash-body').innerHTML='<div class="empty"><p style="color:var(--red)">Error: '+esc(err.message)+'</p></div>';
-    console.error('[Commission] loadData error:', err);
+    console.error('[Commission] loadData error:',err);
   }
+}
+
+function updateSyncStatus(syncedAt,errors){
+  var el=document.getElementById('sync-status');
+  if(!el) return;
+  if(!syncedAt){el.textContent='Never synced';el.style.color='rgba(255,255,255,.3)';return;}
+  var ago=Math.floor((Date.now()-new Date(syncedAt))/60000);
+  var label=ago<60?ago+'m ago':ago<1440?Math.floor(ago/60)+'h ago':new Date(syncedAt).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  el.textContent='Synced '+label;
+  el.style.color='rgba(255,255,255,.4)';
+  if(errors&&Object.keys(errors).length){el.textContent+=' ⚠';el.title='Errors: '+JSON.stringify(errors);}
+}
+
+async function syncNow(){
+  var btn=document.getElementById('sync-btn');
+  if(btn){btn.innerHTML='<span class="spin"></span> Syncing…';btn.disabled=true;}
+  showDashLoading('Syncing from BuildOps — this takes 1-2 minutes…');
+  try{
+    var res=await fetch('/.netlify/functions/sync',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Admin-Password':SESSION.password||''}
+    });
+    var text=await res.text();
+    var d={};try{d=JSON.parse(text);}catch(ex){throw new Error('Bad response ('+res.status+'): '+text.slice(0,100));}
+    if(!res.ok) throw new Error(d.error||'Sync failed '+res.status);
+    console.log('[Commission] Sync complete:',d);
+    await loadData();
+  }catch(err){
+    alert('Sync failed: '+err.message);
+    document.getElementById('dash-body').innerHTML='<div class="empty"><p style="color:var(--red)">Sync error: '+esc(err.message)+'</p></div>';
+  }
+  if(btn){btn.innerHTML='<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Sync Now';btn.disabled=false;}
 }
 
 function updateSyncStatus(syncedAt, errors){
@@ -912,11 +946,8 @@ async function syncNow(){
       method:'POST',
       headers:{'Content-Type':'application/json','X-Admin-Password':SESSION.password||''}
     });
-    var text=await res.text();
-    console.log('[Commission] Sync response status:', res.status, 'body:', text.slice(0,300));
-    var d={};
-    try{ d=JSON.parse(text); }catch(ex){ throw new Error('Sync returned non-JSON ('+res.status+'): '+text.slice(0,100)); }
-    if(!res.ok) throw new Error(d.error||'Sync failed with status '+res.status);
+    var d=await res.json();
+    if(!res.ok) throw new Error(d.error||'Sync failed');
     console.log('[Commission] Sync complete:',d);
     await loadData();
   }catch(err){
@@ -970,7 +1001,7 @@ function enrich(){
 
   enriched=(Array.isArray(jobs)?jobs:[]).map(function(job){
     var repId=job.accountManagerId||'';
-    var repName=repId?(empMap[repId]||(repId.length>20?repId.slice(0,8)+'…':repId)):'Unknown';
+    var repName=repId?(empMap[repId]||repId):'Unknown';
     var cust=custMap[job.billingCustomerId]||{};
     var tags=Array.isArray(cust.tags)?cust.tags.map(function(t){return(t&&(t.name||t.label||t)||'').toLowerCase();}):[];
     var isHouse=tags.some(function(t){return t.includes('house');});
@@ -1032,6 +1063,13 @@ function buildRepFilter(){
 
 // ── FILTER / SORT ─────────────────────────────────────────
 var cbOnly=false;
+
+function onPeriodChange(){
+  var v=document.getElementById('period-sel').value;
+  var w=document.getElementById('custom-date-wrap');
+  if(w) w.style.display=v==='custom'?'flex':'none';
+  if(v!=='custom') renderDash();
+}
 
 function onPeriodChange(){
   var v=document.getElementById('period-sel').value;
@@ -1759,39 +1797,29 @@ var allBuildOpsEmployees = [];
 
 async function loadBuildOpsEmployees(){
   var btn = document.querySelector('#tab-users .btn-o');
-  if(btn){ btn.innerHTML='<span class="spin dk"></span> Syncing…'; btn.disabled=true; }
-  document.getElementById('emp-list').innerHTML='<div class="empty"><div class="empty-icon"><div class="spin dk"></div></div><p>Loading employees…</p></div>';
+  if(btn){ btn.innerHTML = '<span class="spin dk"></span> Syncing…'; btn.disabled = true; }
+  document.getElementById('emp-list').innerHTML = '<div class="empty"><div class="empty-icon"><div class="spin dk"></div></div><p>Loading employees from BuildOps…</p></div>';
 
   try{
-    // First try from Blobs cache (fast)
+    // Load from Blobs cache first
     var d = await fetch(commBase()+'?action=data&key=employees').then(function(r){return r.json();});
     var list = d.items||[];
-
-    // If cache empty, try direct proxy
     if(!list.length){
-      console.log('[Commission] No cached employees, trying proxy…');
-      try{
-        var pd = await callProxy('/v1/employees?page=0&page_size=200');
-        list = pd.items||pd||[];
-      }catch(pe){ console.warn('Proxy employees failed:', pe.message); }
+      // Fall back to proxy
+      try{ var pd=await callProxy('/v1/employees?page=0&page_size=200'); list=pd.items||pd||[]; }catch(pe){}
     }
-
-    allBuildOpsEmployees = list.filter(function(e){ return e&&e.id&&(e.firstName||e.name); });
+    allBuildOpsEmployees = list.filter(function(e){ return e && e.id && (e.firstName||e.name); });
     allBuildOpsEmployees.sort(function(a,b){
       return ((a.firstName||'')+(a.lastName||'')).localeCompare((b.firstName||'')+(b.lastName||''));
     });
     document.getElementById('emp-count').textContent = allBuildOpsEmployees.length;
-
-    if(!allBuildOpsEmployees.length){
-      document.getElementById('emp-list').innerHTML='<div class="empty"><p>No employees found.</p><p style="font-size:11px;margin-top:4px">Run <strong>Sync Now</strong> first to cache BuildOps data.</p></div>';
-    } else {
-      renderEmployeeList(allBuildOpsEmployees);
-    }
+    renderEmployeeList(allBuildOpsEmployees);
   }catch(err){
-    document.getElementById('emp-list').innerHTML='<div class="empty"><p style="color:var(--red)">Error: '+esc(err.message)+'</p><p style="font-size:11px;margin-top:4px">Run <strong>Sync Now</strong> from the Dashboard tab first.</p></div>';
+    document.getElementById('emp-list').innerHTML = '<div class="empty"><p style="color:var(--red)">Error: '+esc(err.message)+'</p><p style="font-size:11px;margin-top:4px">Make sure live data is loaded and proxy is configured.</p></div>';
   }
-  if(btn){ btn.innerHTML='<svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Sync from BuildOps'; btn.disabled=false; }
+  if(btn){ btn.innerHTML = '<svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Sync from BuildOps'; btn.disabled = false; }
 }
+
 function filterEmployees(){
   var q = document.getElementById('emp-search').value.toLowerCase();
   var filtered = allBuildOpsEmployees.filter(function(e){
@@ -1876,15 +1904,6 @@ saveUser = async function(){
     var d = await res.json();
     if(!res.ok) throw new Error(d.error||'Save failed');
     closeUserModal();
-    loadUsers();
-    // Re-render employee list to update "Has Access" badges
-    if(allBuildOpsEmployees.length) renderEmployeeList(allBuildOpsEmployees);
-  }catch(err){
-    showModalAlert('aerr', err.message);
-  }
-};
-
-dal();
     loadUsers();
     // Re-render employee list to update "Has Access" badges
     if(allBuildOpsEmployees.length) renderEmployeeList(allBuildOpsEmployees);
