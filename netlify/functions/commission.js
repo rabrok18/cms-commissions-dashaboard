@@ -29,14 +29,22 @@ exports.handler = async (event) => {
   try {
 
     // ── PUBLIC: login check ──────────────────────────────
-    // DEBUG - remove after testing
-    if (action === 'debug') {
-      return { statusCode: 200, headers: H, body: JSON.stringify({
-        adminPwSet: !!adminPw,
-        adminPwLength: adminPw ? adminPw.length : 0,
-        adminPwFirst3: adminPw ? adminPw.slice(0,3) : '',
-        bodyReceived: body,
-      })};
+    // GET cached data from Blobs (public - used by dashboard on load)
+    if (event.httpMethod === 'GET' && action === 'data') {
+      const key = (event.queryStringParameters || {}).key || '';
+      if (!key) return { statusCode: 400, headers: H, body: JSON.stringify({ error: 'Missing key' }) };
+      let raw = null;
+      try { raw = await getCommStore().get('data:' + key); } catch(e) {}
+      if (!raw) return { statusCode: 200, headers: H, body: JSON.stringify({ items: [], cached: false }) };
+      return { statusCode: 200, headers: H, body: JSON.stringify({ items: JSON.parse(raw), cached: true }) };
+    }
+
+    // GET sync status
+    if (event.httpMethod === 'GET' && action === 'syncStatus') {
+      let syncedAt = null, errors = {};
+      try { syncedAt = await getCommStore().get('data:syncedAt'); } catch(e) {}
+      try { const e = await getCommStore().get('data:syncErrors'); errors = e ? JSON.parse(e) : {}; } catch(e) {}
+      return { statusCode: 200, headers: H, body: JSON.stringify({ syncedAt, errors }) };
     }
 
     if (action === 'login') {
