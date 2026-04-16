@@ -364,6 +364,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
 
 /* ANIMATIONS */
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+input[type="date"]{color-scheme:dark}
+#custom-date-wrap input[type="date"]{background:#1e2d47;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:7px;padding:4px 8px;font-size:11px;outline:none;font-family:inherit}
+
 .tab.on{animation:fadeUp .2s ease both}
 </style>
 </head>
@@ -735,16 +738,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
     </div>
     <div class="modal-footer">
       <button class="btn btn-o bsm" onclick="closeUserModal()">Cancel</button>
-      <button class="btn btn-p bsm" onclick="saveUser()">
-        <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-        Grant Access
-      </button>
-    </div>
-  </div>
-</div>
-
-
-<script>
+      <button class="btn btn-p bsm" onclick="saveUser(
 // ── CONFIG ────────────────────────────────────────────────
 var SITE_URL = localStorage.getItem('cms-site-url') || '';
 var SESSION  = null;
@@ -918,8 +912,11 @@ async function syncNow(){
       method:'POST',
       headers:{'Content-Type':'application/json','X-Admin-Password':SESSION.password||''}
     });
-    var d=await res.json();
-    if(!res.ok) throw new Error(d.error||'Sync failed');
+    var text=await res.text();
+    console.log('[Commission] Sync response status:', res.status, 'body:', text.slice(0,300));
+    var d={};
+    try{ d=JSON.parse(text); }catch(ex){ throw new Error('Sync returned non-JSON ('+res.status+'): '+text.slice(0,100)); }
+    if(!res.ok) throw new Error(d.error||'Sync failed with status '+res.status);
     console.log('[Commission] Sync complete:',d);
     await loadData();
   }catch(err){
@@ -973,7 +970,7 @@ function enrich(){
 
   enriched=(Array.isArray(jobs)?jobs:[]).map(function(job){
     var repId=job.accountManagerId||'';
-    var repName=repId?(empMap[repId]||repId):'Unknown';
+    var repName=repId?(empMap[repId]||(repId.length>20?repId.slice(0,8)+'…':repId)):'Unknown';
     var cust=custMap[job.billingCustomerId]||{};
     var tags=Array.isArray(cust.tags)?cust.tags.map(function(t){return(t&&(t.name||t.label||t)||'').toLowerCase();}):[];
     var isHouse=tags.some(function(t){return t.includes('house');});
@@ -1107,7 +1104,7 @@ function renderDash(){
   var totalSub=invRows.reduce(function(s,r){return s+r.subtotal;},0);
   var completeCt=rows.filter(function(r){return r.isComplete;}).length;
 
-  document.getElementById('result-ct').textContent=rows.length+' jobs';
+  document.getElementById('result-ct').textContent=rows.length+' of '+enriched.length+' jobs';
 
   var html='<div>';
 
@@ -1762,23 +1759,39 @@ var allBuildOpsEmployees = [];
 
 async function loadBuildOpsEmployees(){
   var btn = document.querySelector('#tab-users .btn-o');
-  if(btn){ btn.innerHTML = '<span class="spin dk"></span> Syncing…'; btn.disabled = true; }
-  document.getElementById('emp-list').innerHTML = '<div class="empty"><div class="empty-icon"><div class="spin dk"></div></div><p>Loading employees from BuildOps…</p></div>';
+  if(btn){ btn.innerHTML='<span class="spin dk"></span> Syncing…'; btn.disabled=true; }
+  document.getElementById('emp-list').innerHTML='<div class="empty"><div class="empty-icon"><div class="spin dk"></div></div><p>Loading employees…</p></div>';
 
   try{
-    var d = await callProxy('/v1/employees?page=0&page_size=200');
-    allBuildOpsEmployees = (d.items || []).filter(function(e){ return e && e.id && e.firstName; });
+    // First try from Blobs cache (fast)
+    var d = await fetch(commBase()+'?action=data&key=employees').then(function(r){return r.json();});
+    var list = d.items||[];
+
+    // If cache empty, try direct proxy
+    if(!list.length){
+      console.log('[Commission] No cached employees, trying proxy…');
+      try{
+        var pd = await callProxy('/v1/employees?page=0&page_size=200');
+        list = pd.items||pd||[];
+      }catch(pe){ console.warn('Proxy employees failed:', pe.message); }
+    }
+
+    allBuildOpsEmployees = list.filter(function(e){ return e&&e.id&&(e.firstName||e.name); });
     allBuildOpsEmployees.sort(function(a,b){
       return ((a.firstName||'')+(a.lastName||'')).localeCompare((b.firstName||'')+(b.lastName||''));
     });
     document.getElementById('emp-count').textContent = allBuildOpsEmployees.length;
-    renderEmployeeList(allBuildOpsEmployees);
-  }catch(err){
-    document.getElementById('emp-list').innerHTML = '<div class="empty"><p style="color:var(--red)">Error: '+esc(err.message)+'</p><p style="font-size:11px;margin-top:4px">Make sure live data is loaded and proxy is configured.</p></div>';
-  }
-  if(btn){ btn.innerHTML = '<svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Sync from BuildOps'; btn.disabled = false; }
-}
 
+    if(!allBuildOpsEmployees.length){
+      document.getElementById('emp-list').innerHTML='<div class="empty"><p>No employees found.</p><p style="font-size:11px;margin-top:4px">Run <strong>Sync Now</strong> first to cache BuildOps data.</p></div>';
+    } else {
+      renderEmployeeList(allBuildOpsEmployees);
+    }
+  }catch(err){
+    document.getElementById('emp-list').innerHTML='<div class="empty"><p style="color:var(--red)">Error: '+esc(err.message)+'</p><p style="font-size:11px;margin-top:4px">Run <strong>Sync Now</strong> from the Dashboard tab first.</p></div>';
+  }
+  if(btn){ btn.innerHTML='<svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Sync from BuildOps'; btn.disabled=false; }
+}
 function filterEmployees(){
   var q = document.getElementById('emp-search').value.toLowerCase();
   var filtered = allBuildOpsEmployees.filter(function(e){
@@ -1863,6 +1876,15 @@ saveUser = async function(){
     var d = await res.json();
     if(!res.ok) throw new Error(d.error||'Save failed');
     closeUserModal();
+    loadUsers();
+    // Re-render employee list to update "Has Access" badges
+    if(allBuildOpsEmployees.length) renderEmployeeList(allBuildOpsEmployees);
+  }catch(err){
+    showModalAlert('aerr', err.message);
+  }
+};
+
+dal();
     loadUsers();
     // Re-render employee list to update "Has Access" badges
     if(allBuildOpsEmployees.length) renderEmployeeList(allBuildOpsEmployees);
