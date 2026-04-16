@@ -401,12 +401,21 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
     <div class="topbar-right">
       <span class="tb-user" id="hdr-user"></span>
       <span class="tb-role" id="hdr-role"></span>
-      <select class="tb-period" id="period-sel" onchange="renderDash()">
+      <select class="tb-period" id="period-sel" onchange="onPeriodChange()">
         <option value="mtd">Month to Date</option>
         <option value="qtd">Quarter to Date</option>
         <option value="ytd" selected>Year to Date</option>
         <option value="all">All Time</option>
+        <option value="lm">Last Month</option>
+        <option value="lq">Last Quarter</option>
+        <option value="ly">Last Year</option>
+        <option value="custom">Custom Range…</option>
       </select>
+      <div id="custom-date-wrap" style="display:none;align-items:center;gap:6px">
+        <input type="date" id="date-from" onchange="renderDash()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);border-radius:7px;padding:4px 8px;font-size:11px;outline:none">
+        <span style="color:rgba(255,255,255,.3);font-size:11px">to</span>
+        <input type="date" id="date-to" onchange="renderDash()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);border-radius:7px;padding:4px 8px;font-size:11px;outline:none">
+      </div>
       <button class="tb-btn" onclick="exportCSV()">Export CSV</button>
       <button class="tb-btn" onclick="doLogout()">Sign Out</button>
     </div>
@@ -449,10 +458,16 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
         <div class="chip" id="cb-chip" onclick="toggleCB()">⚠ Clawbacks Only</div>
         <span class="rct" id="result-ct">—</span>
       </div>
-      <button class="btn btn-g bsm" onclick="loadData()" id="refresh-btn">
-        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-        Refresh
-      </button>
+      <div style="display:flex;align-items:center;gap:6px">
+        <input id="site-url-quick" type="text" placeholder="Site URL" 
+          title="Netlify site URL for proxy calls"
+          style="border:1.5px solid var(--line);border-radius:var(--r3);padding:5px 9px;font-family:inherit;font-size:11px;color:var(--text);background:var(--surface);outline:none;width:180px"
+          oninput="SITE_URL=this.value.trim();localStorage.setItem('cms-site-url',this.value.trim())">
+        <button class="btn btn-g bsm" onclick="loadData()" id="refresh-btn">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Refresh
+        </button>
+      </div>
     </div>
     <div id="dash-body">
       <div class="empty">
@@ -819,7 +834,11 @@ async function initApp(){
 
 function loadSiteUrl(){
   var saved = localStorage.getItem('cms-site-url');
-  if(saved) document.getElementById('site-url').value = saved;
+  if(saved){
+    var el=document.getElementById('site-url'); if(el) el.value=saved;
+    var eq=document.getElementById('site-url-quick'); if(eq) eq.value=saved;
+    SITE_URL=saved;
+  }
 }
 
 // ── TABS ──────────────────────────────────────────────────
@@ -959,6 +978,13 @@ function buildRepFilter(){
 
 // ── FILTER / SORT ─────────────────────────────────────────
 var cbOnly=false;
+
+function onPeriodChange(){
+  var v=document.getElementById('period-sel').value;
+  var w=document.getElementById('custom-date-wrap');
+  if(w) w.style.display=v==='custom'?'flex':'none';
+  if(v!=='custom') renderDash();
+}
 function toggleCB(){cbOnly=!cbOnly;document.getElementById('cb-chip').classList.toggle('on',cbOnly);renderDash();}
 function setSort(col){if(sortCol===col)sortDir=sortDir==='asc'?'desc':'asc';else{sortCol=col;sortDir='desc';}renderDash();}
 function filterRep(id){var s=document.getElementById('f-rep');s.value=s.value===id?'all':id;renderDash();}
@@ -975,9 +1001,24 @@ function getFiltered(){
   return (enriched||[]).filter(function(r){
     if(r.issuedDate){
       var d=r.issuedDate;
-      if(period==='mtd'&&(d.getMonth()!==now.getMonth()||d.getFullYear()!==now.getFullYear()))return false;
-      if(period==='qtd'){var qn=Math.floor(now.getMonth()/3),dq=Math.floor(d.getMonth()/3);if(dq!==qn||d.getFullYear()!==now.getFullYear())return false;}
-      if(period==='ytd'&&d.getFullYear()!==now.getFullYear())return false;
+      var cy=now.getFullYear(), cm=now.getMonth();
+      // Last month
+      var lmS=new Date(cy,cm-1,1), lmE=new Date(cy,cm,0);
+      // Last quarter
+      var cq=Math.floor(cm/3);
+      var lqS=cq>0?new Date(cy,(cq-1)*3,1):new Date(cy-1,9,1);
+      var lqE=cq>0?new Date(cy,cq*3,0):new Date(cy-1,11,31);
+      if(period==='mtd'&&(d.getMonth()!==cm||d.getFullYear()!==cy))return false;
+      if(period==='lm'&&(d<lmS||d>lmE))return false;
+      if(period==='qtd'){var qn=Math.floor(cm/3),dq=Math.floor(d.getMonth()/3);if(dq!==qn||d.getFullYear()!==cy)return false;}
+      if(period==='lq'&&(d<lqS||d>lqE))return false;
+      if(period==='ytd'&&d.getFullYear()!==cy)return false;
+      if(period==='ly'&&d.getFullYear()!==cy-1)return false;
+      if(period==='custom'){
+        var df=document.getElementById('date-from'),dt=document.getElementById('date-to');
+        if(df&&df.value&&d<new Date(df.value))return false;
+        if(dt&&dt.value&&d>new Date(dt.value+'T23:59:59'))return false;
+      }
     }
     if(repF!=='all'&&r.repId!==repF)return false;
     if(tagF!=='all'&&r.tagType!==tagF)return false;
@@ -1327,6 +1368,7 @@ function saveConfig(){
   var url=document.getElementById('site-url').value.trim();
   SITE_URL=url;
   localStorage.setItem('cms-site-url',url);
+  var eq=document.getElementById('site-url-quick'); if(eq) eq.value=url;
   showA('config-alert','aok','✓ Saved. Reload data to apply new URL.');
 }
 
