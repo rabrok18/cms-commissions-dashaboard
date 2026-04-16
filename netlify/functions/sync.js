@@ -16,12 +16,12 @@ exports.handler = async (event) => {
 
   if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers: H, body: '' };
 
-  // Manual trigger requires admin password
-  const isScheduled = !event.httpMethod; // scheduled functions have no httpMethod
-  if (!isScheduled) {
-    const adminPw = process.env.ADMIN_PASSWORD;
-    const incoming = (event.headers && event.headers['x-admin-password']) || '';
-    if (adminPw && incoming !== adminPw) {
+  // Manual trigger - check admin password if set
+  const adminPw = process.env.ADMIN_PASSWORD;
+  if (event.httpMethod === 'POST' && adminPw) {
+    const incoming = (event.headers && (event.headers['x-admin-password'] || event.headers['X-Admin-Password'])) || '';
+    console.log('[Sync] Admin auth check — header present:', !!incoming);
+    if (incoming !== adminPw) {
       return { statusCode: 403, headers: H, body: JSON.stringify({ error: 'Admin access required' }) };
     }
   }
@@ -31,12 +31,24 @@ exports.handler = async (event) => {
   const clientId  = process.env.BUILDOPS_CLIENT_ID   || '';
   const clientSec = process.env.BUILDOPS_CLIENT_SECRET || '';
 
-  const store = getStore({ name: 'commission', consistency: 'strong' });
-
   try {
+    let store;
+    try { store = getStore({ name: 'commission', consistency: 'strong' }); }
+    catch(blobErr) { 
+      return { statusCode: 500, headers: H, body: JSON.stringify({ error: 'Blobs not configured: ' + blobErr.message }) };
+    }
+    // Log env var presence (not values)
+    console.log('[Sync] Config check — apiUrl:', !!apiUrl, 'tenantId:', !!tenantId, 'clientId:', !!clientId, 'clientSec:', !!clientSec);
+
+    if (!clientId || !clientSec) {
+      return { statusCode: 500, headers: H, body: JSON.stringify({ 
+        error: 'Missing BuildOps credentials. Set BUILDOPS_CLIENT_ID and BUILDOPS_CLIENT_SECRET in Netlify environment variables.' 
+      })};
+    }
+
     // Authenticate
     const token = await getToken(apiUrl, clientId, clientSec);
-    console.log('[Sync] Authenticated');
+    console.log('[Sync] Authenticated successfully');
 
     // Fetch all data in parallel where possible
     const results = {};
