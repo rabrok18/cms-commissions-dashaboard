@@ -341,12 +341,16 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
       <span class="tb-sync-status" id="sync-status"></span>
       <span class="tb-user" id="hdr-user"></span>
       <span class="tb-role" id="hdr-role"></span>
-      <select class="tb-period" id="period-sel" onchange="renderDash()">
+      <select class="tb-period" id="period-sel" onchange="handlePeriodChange()">
         <option value="mtd">Month to Date</option>
         <option value="qtd">Quarter to Date</option>
         <option value="ytd" selected>Year to Date</option>
         <option value="all">All Time</option>
+        <option value="custom">Custom Range</option>
       </select>
+      <input type="date" class="tb-period" id="date-from" style="display:none;width:125px" onchange="renderDash()">
+      <span id="date-dash" style="display:none;color:rgba(255,255,255,.3);font-size:11px">to</span>
+      <input type="date" class="tb-period" id="date-to" style="display:none;width:125px" onchange="renderDash()">
       <button class="tb-btn" onclick="exportCSV()">Export CSV</button>
       <button class="tb-btn" onclick="doLogout()">Sign Out</button>
     </div>
@@ -359,6 +363,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
     <div class="stab hidden" data-tab="payouts" id="tab-payouts-btn" onclick="switchTab('payouts')"><div class="dot"></div>Payouts</div>
     <div class="stab hidden" data-tab="rates" id="tab-rates-btn" onclick="switchTab('rates')"><div class="dot"></div>Rates &amp; Config</div>
     <div class="stab hidden" data-tab="api" id="tab-api-btn" onclick="switchTab('api')"><div class="dot"></div>API Tester</div>
+    <div class="stab hidden" data-tab="disputes" id="tab-disputes-btn" onclick="switchTab('disputes')"><div class="dot"></div>Disputes <span class="cnt red" id="dispute-badge" style="display:none">0</span></div>
   </nav>
 
   <!-- ═══ DASHBOARD TAB ═══ -->
@@ -494,14 +499,21 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
         <div class="card-hdr"><div class="card-title">How payouts work</div></div>
         <div class="card-body" style="font-size:12.5px;color:var(--body);line-height:1.9">
           <ol style="padding-left:18px;display:flex;flex-direction:column;gap:12px">
-            <li>Commission is earned <strong>when an invoice is issued</strong></li>
-            <li>At month end, review each rep's total and click <strong>Record Payout</strong></li>
-            <li>Lump sum is saved with date and invoice list</li>
+            <li>Commission is calculated <strong>when an invoice is issued</strong></li>
+            <li>Admin clicks <strong>Submit for Review</strong> to send to accounting</li>
+            <li>Accounting reviews and clicks <strong>Approve</strong> or <strong>Reject</strong></li>
+            <li>Sales rep can <strong>Acknowledge</strong> their commission from their dashboard</li>
+            <li>Once approved, admin clicks <strong>Record Payout</strong></li>
             <li>Invoices unpaid <strong>90+ days</strong> are flagged for clawback</li>
-            <li>Void a payout if recorded in error</li>
           </ol>
-          <div style="margin-top:16px;padding:12px 14px;background:var(--amber-s);border-radius:var(--r2);font-size:11.5px;color:#92400e;border:1px solid var(--amber-b)">
+          <div style="margin-top:16px;padding:12px 14px;background:var(--blue-s);border-radius:var(--r2);font-size:11.5px;color:var(--blue);border:1px solid var(--blue-b)">
+            <strong>Workflow:</strong> Submit → Approve → Acknowledge → Pay
+          </div>
+          <div style="margin-top:8px;padding:12px 14px;background:var(--amber-s);border-radius:var(--r2);font-size:11.5px;color:#92400e;border:1px solid var(--amber-b)">
             <strong>Clawback:</strong> When a payout includes invoices later flagged for clawback, the at-risk amount is shown in history.
+          </div>
+          <div style="margin-top:8px;padding:12px 14px;background:var(--red-s);border-radius:var(--r2);font-size:11.5px;color:var(--red);border:1px solid var(--red-b)">
+            <strong>Disputes:</strong> Reps can flag issues from their dashboard. Check the Disputes tab for open items.
           </div>
         </div>
       </div>
@@ -610,6 +622,26 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
       <div class="card" style="position:sticky;top:56px;align-self:start">
         <div class="card-hdr"><div class="card-title">Response</div><div id="res-meta" style="font-size:11px;color:var(--faint)"></div></div>
         <div style="padding:0"><div class="res-box" id="res-box" style="border-radius:0 0 var(--r) var(--r);min-height:200px">// Select an endpoint above</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ DISPUTES TAB ═══ -->
+  <div class="tab" id="tab-disputes">
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title">
+          <div class="cico" style="background:var(--red)"><svg width="12" height="12" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+          Open Disputes <span class="cnt red" id="dispute-count">0</span>
+        </div>
+      </div>
+      <div class="twrap">
+        <table><thead><tr>
+          <th>Date</th><th>Rep</th><th>Job #</th><th>Invoice #</th><th>Issue</th><th>Status</th><th></th>
+        </tr></thead>
+        <tbody id="disputes-body">
+          <tr><td colspan="7" style="text-align:center;color:var(--faint);padding:28px">No disputes</td></tr>
+        </tbody></table>
       </div>
     </div>
   </div>
@@ -751,7 +783,7 @@ async function initApp() {
   var isAdmin = SESSION.role === 'admin';
 
   // Show/hide admin tabs
-  ['tab-users-btn', 'tab-payouts-btn', 'tab-rates-btn', 'tab-api-btn'].forEach(function(id) {
+  ['tab-users-btn', 'tab-payouts-btn', 'tab-rates-btn', 'tab-api-btn', 'tab-disputes-btn'].forEach(function(id) {
     document.getElementById(id).classList.toggle('hidden', !isAdmin);
   });
 
@@ -768,6 +800,8 @@ async function initApp() {
     loadSiteUrl();
     loadUsers();
     loadPayouts();
+    await loadReviews();
+    await loadDisputes();
   }
 
   buildEps();
@@ -781,6 +815,8 @@ async function initApp() {
       var pd = await res.json();
       allPayouts = (pd.payouts || []).filter(function(p) { return !p.voided; });
     } catch (e) { allPayouts = []; }
+    await loadReviews();
+    await loadDisputes();
   }
 
   await loadData();
@@ -824,7 +860,7 @@ async function loadData() {
       if (Object.keys(empMap).length === 0) {
         console.warn('Employee cache empty — fetching live');
         try {
-          var empLive = await fetchAllLive('/v1/employees');
+          var empLive = await fetchAllLive('/v1/employees', 'page_size');
           empLive.forEach(function(e) {
             if (e && e.id) empMap[e.id] = empName(e);
           });
@@ -839,7 +875,7 @@ async function loadData() {
       if (Object.keys(custMap).length === 0) {
         console.warn('Customer cache empty — fetching live');
         try {
-          var custLive = await fetchAllLive('/v1/customers');
+          var custLive = await fetchAllLive('/v1/customers', 'limit');
           custLive.forEach(function(c) { if (c && c.id) custMap[c.id] = c; });
         } catch (e) { console.warn('Customer live fallback failed:', e.message); }
       }
@@ -880,23 +916,27 @@ async function loadData() {
 // Live fallback — direct API proxy calls
 async function loadDataLive() {
   showDashLoading('Loading jobs from BuildOps…');
-  jobs = await fetchAllLive('/v1/jobs');
+  jobs = await fetchAllLive('/v1/jobs', 'page_size');
 
   showDashLoading('Loading invoices…');
-  invoices = await fetchAllLive('/v1/invoices');
+  invoices = await fetchAllLive('/v1/invoices', 'page_size');
 
   empMap = {};
   try {
-    var ed = await callProxy('/v1/employees?page=0&page_size=200&pageSize=200');
-    (ed.items || []).forEach(function(e) {
+    // Employees use page_size param, max 100
+    var empData = await fetchAllLive('/v1/employees', 'page_size');
+    empData.forEach(function(e) {
       if (e && e.id) empMap[e.id] = empName(e);
     });
+    console.log('Employees loaded:', Object.keys(empMap).length);
   } catch (e) { console.warn('Employees:', e.message); }
 
   custMap = {};
   try {
-    var cd = await callProxy('/v1/customers?page=0&page_size=500&pageSize=500');
-    (cd.items || []).forEach(function(c) { if (c && c.id) custMap[c.id] = c; });
+    // Customers use limit param (NOT page_size), max 100
+    var custData = await fetchAllLive('/v1/customers', 'limit');
+    custData.forEach(function(c) { if (c && c.id) custMap[c.id] = c; });
+    console.log('Customers loaded:', Object.keys(custMap).length);
   } catch (e) { console.warn('Customers:', e.message); }
 
   buildRepFilter();
@@ -905,15 +945,16 @@ async function loadDataLive() {
   renderPayoutPanel();
 }
 
-async function fetchAllLive(ep) {
+async function fetchAllLive(ep, sizeParam) {
+  sizeParam = sizeParam || 'page_size';
   var all = [], page = 0;
   while (true) {
     showDashLoading('Loading ' + ep.split('/v1/').pop().split('?')[0] + ' — ' + all.length + ' loaded…');
-    var d = await callProxy(ep + '?page=' + page + '&page_size=100&pageSize=100');
+    var d = await callProxy(ep + '?page=' + page + '&' + sizeParam + '=100');
     var items = Array.isArray(d) ? d : (d && Array.isArray(d.items) ? d.items : []);
     all = all.concat(items);
-    var total = (d && d.query && d.query.totalCount) || (d && d.totalCount) || 0;
-    console.log('fetchAllLive page=' + page + ' got=' + items.length + ' total=' + all.length + ' apiTotal=' + total);
+    var total = d.totalCount || (d && d.query && d.query.totalCount) || 0;
+    console.log('fetchAllLive', ep, 'page=' + page, 'got=' + items.length, 'total=' + all.length, 'apiTotal=' + total);
     if (items.length === 0) break;
     if (total > 0 && all.length >= total) break;
     if (total === 0 && items.length < 100) break;
@@ -1040,6 +1081,20 @@ function buildRepFilter() {
 
 // ── FILTER / SORT ─────────────────────────────────────────
 function toggleCB() { cbOnly = !cbOnly; document.getElementById('cb-chip').classList.toggle('on', cbOnly); renderDash(); }
+
+function handlePeriodChange() {
+  var v = document.getElementById('period-sel').value;
+  var show = v === 'custom';
+  document.getElementById('date-from').style.display = show ? '' : 'none';
+  document.getElementById('date-to').style.display = show ? '' : 'none';
+  document.getElementById('date-dash').style.display = show ? '' : 'none';
+  if (show && !document.getElementById('date-from').value) {
+    var now = new Date();
+    document.getElementById('date-from').value = now.getFullYear() + '-01-01';
+    document.getElementById('date-to').value = now.toISOString().slice(0, 10);
+  }
+  renderDash();
+}
 function setSort(col) { if (sortCol === col) sortDir = sortDir === 'asc' ? 'desc' : 'asc'; else { sortCol = col; sortDir = 'desc'; } renderDash(); }
 function filterRep(id) { var s = document.getElementById('f-rep'); s.value = s.value === id ? 'all' : id; renderDash(); }
 
@@ -1058,6 +1113,12 @@ function getFiltered() {
       if (period === 'mtd' && (d.getMonth() !== now.getMonth() || d.getFullYear() !== now.getFullYear())) return false;
       if (period === 'qtd') { var qn = Math.floor(now.getMonth() / 3), dq = Math.floor(d.getMonth() / 3); if (dq !== qn || d.getFullYear() !== now.getFullYear()) return false; }
       if (period === 'ytd' && d.getFullYear() !== now.getFullYear()) return false;
+      if (period === 'custom') {
+        var from = document.getElementById('date-from').value;
+        var to = document.getElementById('date-to').value;
+        if (from && d < new Date(from + 'T00:00:00')) return false;
+        if (to && d > new Date(to + 'T23:59:59')) return false;
+      }
     }
     if (repF !== 'all' && r.repId !== repF) return false;
     if (tagF !== 'all' && r.tagType !== tagF) return false;
@@ -1158,12 +1219,36 @@ function renderDash() {
   // Rep summary (rep view only)
   if (!isAdmin) {
     var repPayouts = allPayouts.filter(function(p) { return p.repId === SESSION.employeeId; });
+    var curMonth = new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0');
+    var curMonthLabel = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    var curReview = allReviews.find(function(r) { return r.repId === SESSION.employeeId && r.month === curMonth; });
+    var hasAcked = curReview && curReview.repAcknowledged;
+    var myDisputes = allDisputes.filter(function(d) { return d.repId === SESSION.employeeId && d.status === 'open'; });
+
     html += '<div class="sh"><span class="sh-t">Your Commission Summary</span><div class="sh-l"></div></div>';
-    html += '<div class="card"><div class="card-body" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;text-align:center">';
+    html += '<div class="card"><div class="card-body">';
+    html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;text-align:center;margin-bottom:16px">';
     html += '<div><div class="kpi-l">Earned YTD</div><div class="kpi-v gr" style="font-size:28px">' + fmt(earned) + '</div></div>';
     html += '<div><div class="kpi-l">Pending</div><div class="kpi-v am" style="font-size:28px">' + fmt(pending) + '</div></div>';
     html += '<div><div class="kpi-l">Clawback Risk</div><div class="kpi-v rd" style="font-size:28px">' + fmt(cbAmt) + '</div></div>';
+    html += '</div>';
+    // Proof / acknowledge section
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--surface2);border-radius:var(--r2);border:1px solid var(--line)">';
+    html += '<div><div style="font-size:13px;font-weight:600;color:var(--text)">Monthly Review — ' + curMonthLabel + '</div>';
+    html += '<div style="font-size:11px;color:var(--faint);margin-top:2px">Review your commission detail below. Acknowledge when accurate, or flag any discrepancies.</div></div>';
+    if (hasAcked) {
+      html += '<span class="badge b-paid" style="flex-shrink:0">Acknowledged ✓</span>';
+    } else {
+      html += '<button class="btn btn-p bsm" style="flex-shrink:0" onclick="repAcknowledge(\'' + curMonth + '\')">I\'ve Reviewed — Acknowledge</button>';
+    }
+    html += '</div>';
+    if (myDisputes.length) {
+      html += '<div style="margin-top:10px;padding:10px 14px;background:var(--amber-s);border:1px solid var(--amber-b);border-radius:var(--r2);font-size:12px;color:var(--amber)">';
+      html += '<strong>' + myDisputes.length + ' open dispute' + (myDisputes.length > 1 ? 's' : '') + '</strong> — admin has been notified.';
+      html += '</div>';
+    }
     html += '</div></div>';
+
     if (repPayouts.length) {
       html += '<div class="sh"><span class="sh-t">Your payout history</span><div class="sh-l"></div></div>';
       html += '<div class="card"><div class="twrap"><table><thead><tr><th>Month</th><th class="n">Commission</th><th>Paid Date</th><th>Note</th></tr></thead><tbody>';
@@ -1194,6 +1279,7 @@ function renderDash() {
     { k: 'commStatus', l: 'Comm Status' },
     { k: 'daysSince', l: 'Days Open', cls: 'n' },
   ]);
+  if (!isAdmin) cols.push({ k: '_action', l: '' });
 
   html += '<div class="sh"><span class="sh-t">Job Commission Detail</span><div class="sh-l"></div></div>';
   html += '<div class="card"><div class="twrap"><table><thead><tr>';
@@ -1221,6 +1307,12 @@ function renderDash() {
     html += '<td class="n" style="font-weight:700;color:' + (r.isPaid ? 'var(--green)' : r.isClawback ? 'var(--red)' : r.invoiced ? 'var(--amber)' : 'var(--faint)') + '">' + (r.invoiced ? fmt(r.commission) : '—') + '</td>';
     html += '<td>' + sBadge(r) + '</td>';
     html += '<td class="n" style="' + (r.isClawback ? 'color:var(--red);font-weight:700' : r.isWarn ? 'color:var(--amber)' : '') + '">' + (r.invoiced ? r.daysSince : '—') + '</td>';
+    if (!isAdmin && r.invoiced) {
+      var hasDispute = allDisputes.some(function(d) { return d.jobId === r.jobId && d.status === 'open'; });
+      html += '<td>' + (hasDispute ? '<span class="badge b-warn" style="font-size:9px">Disputed</span>' : '<button class="btn btn-o bsm" style="font-size:9px;padding:3px 8px;color:var(--amber);border-color:var(--amber-b)" onclick="openDispute(\'' + esc(r.jobId) + '\',\'' + esc(r.jobNumber) + '\',\'' + esc(r.invNumber) + '\')">Flag Issue</button>') + '</td>';
+    } else if (!isAdmin) {
+      html += '<td></td>';
+    }
     html += '</tr>';
   });
   html += '</tbody></table></div>';
@@ -1574,8 +1666,32 @@ function renderPayoutPanel() {
     } else {
       var idx = payoutQueue.length;
       payoutQueue.push({ repId: rep.repId, repName: rep.repName, month: monthKey, monthLabel: monthLabel, amount: rep.commission, invoiceNums: rep.invoices });
-      html += '<button class="btn btn-g bsm" style="flex-shrink:0" onclick="doRecordPayout(' + idx + ')">'
-        + '<svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Record Payout</button>';
+      // Check review status
+      var review = allReviews.find(function(r) { return r.repId === rep.repId && r.month === monthKey; });
+      if (!review) {
+        html += '<button class="btn btn-o bsm" style="flex-shrink:0" onclick="submitForReview(' + idx + ')">'
+          + '<svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
+          + ' Submit for Review</button>';
+      } else if (review.status === 'pending') {
+        html += '<span class="badge b-warn" style="flex-shrink:0;margin-right:6px">Pending Review</span>';
+        html += '<button class="btn btn-g bsm" style="flex-shrink:0" onclick="approveReview(\'' + review.id + '\')">Approve</button>';
+        html += '<button class="btn btn-r bsm" style="flex-shrink:0;margin-left:4px" onclick="rejectReview(\'' + review.id + '\')">Reject</button>';
+      } else if (review.status === 'approved') {
+        html += '<span class="badge b-paid" style="flex-shrink:0;margin-right:6px;background:var(--green-s);color:var(--green);border-color:var(--green-b)">Approved ✓</span>';
+        html += '<button class="btn btn-g bsm" style="flex-shrink:0" onclick="doRecordPayout(' + idx + ')">'
+          + '<svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>'
+          + ' Record Payout</button>';
+      } else if (review.status === 'rejected') {
+        html += '<span class="badge b-cb" style="flex-shrink:0;margin-right:6px">Rejected</span>';
+        html += '<button class="btn btn-o bsm" style="flex-shrink:0" onclick="submitForReview(' + idx + ')">Resubmit</button>';
+      } else if (review.status === 'acknowledged') {
+        html += '<span class="badge b-pend" style="flex-shrink:0;margin-right:6px">Rep Acknowledged</span>';
+        html += '<button class="btn btn-o bsm" style="flex-shrink:0" onclick="submitForReview(' + idx + ')">Submit for Review</button>';
+      }
+      // Show rep acknowledgment status
+      if (review && review.repAcknowledged) {
+        html += '<span style="font-size:9px;color:var(--green);margin-left:6px;flex-shrink:0" title="Rep confirmed ' + (review.repAcknowledgedDate||'').slice(0,10) + '">Rep ✓</span>';
+      }
     }
     html += '</div>';
   });
@@ -1605,6 +1721,7 @@ async function recordPayout(repId, repName, month, monthLabel, amount, invoiceNu
     var d = await res.json();
     if (!res.ok) throw new Error(d.error || 'Failed');
     await loadPayouts();
+    await loadReviews();
   } catch (err) {
     alert('Error: ' + err.message);
   }
@@ -1664,6 +1781,7 @@ async function voidPayout(payoutId, repName, monthLabel, amount) {
     });
     if (!res.ok) throw new Error('Void failed');
     await loadPayouts();
+    await loadReviews();
   } catch (err) {
     alert('Error: ' + err.message);
   }
@@ -1696,7 +1814,7 @@ async function loadBuildOpsEmployees() {
   document.getElementById('emp-list').innerHTML = '<div class="empty"><div class="empty-icon"><div class="spin dk"></div></div><p>Loading employees from BuildOps…</p></div>';
 
   try {
-    var d = await callProxy('/v1/employees?page=0&page_size=200&pageSize=200');
+    var d = await callProxy('/v1/employees?page=0&page_size=100');
     allBuildOpsEmployees = (d.items || []).filter(function(e) { return e && e.id && e.firstName; });
     allBuildOpsEmployees.sort(function(a, b) {
       return ((a.firstName || '') + (a.lastName || '')).localeCompare((b.firstName || '') + (b.lastName || ''));
@@ -1748,6 +1866,168 @@ function renderEmployeeList(emps) {
     list.appendChild(row);
   });
 }
+// ── REVIEWS & DISPUTES ────────────────────────────────────
+var allReviews = [];
+var allDisputes = [];
+
+async function loadReviews() {
+  try {
+    var headers = {};
+    if (SESSION.role === 'admin') headers['X-Admin-Password'] = SESSION.password;
+    else headers['X-User-Password'] = SESSION.password;
+    var res = await fetch(commBase() + '?action=reviews', { headers: headers });
+    var d = await res.json();
+    allReviews = d.reviews || [];
+  } catch (e) { allReviews = []; }
+}
+
+async function loadDisputes() {
+  try {
+    var headers = {};
+    if (SESSION.role === 'admin') headers['X-Admin-Password'] = SESSION.password;
+    else headers['X-User-Password'] = SESSION.password;
+    var res = await fetch(commBase() + '?action=disputes', { headers: headers });
+    var d = await res.json();
+    allDisputes = d.disputes || [];
+    // Update badge
+    var open = allDisputes.filter(function(d) { return d.status === 'open'; });
+    var badge = document.getElementById('dispute-badge');
+    if (badge) {
+      badge.textContent = open.length;
+      badge.style.display = open.length ? '' : 'none';
+    }
+    var cnt = document.getElementById('dispute-count');
+    if (cnt) cnt.textContent = open.length;
+    renderDisputes();
+  } catch (e) { allDisputes = []; }
+}
+
+function renderDisputes() {
+  var tbody = document.getElementById('disputes-body');
+  if (!tbody) return;
+  var open = allDisputes.filter(function(d) { return d.status === 'open'; });
+  var resolved = allDisputes.filter(function(d) { return d.status === 'resolved'; });
+  var all = open.concat(resolved);
+  if (!all.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--faint);padding:28px">No disputes</td></tr>';
+    return;
+  }
+  tbody.innerHTML = all.map(function(d) {
+    return '<tr' + (d.status === 'resolved' ? ' style="opacity:.5"' : '') + '>'
+      + '<td>' + new Date(d.createdDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + '</td>'
+      + '<td class="nm">' + esc(d.repName) + '</td>'
+      + '<td>' + esc(d.jobNumber) + '</td>'
+      + '<td>' + esc(d.invoiceNumber || '—') + '</td>'
+      + '<td style="max-width:200px;white-space:normal;font-size:11px;line-height:1.5">' + esc(d.note) + '</td>'
+      + '<td>' + (d.status === 'open' ? '<span class="badge b-warn">Open</span>' : '<span class="badge b-paid">Resolved</span>') + '</td>'
+      + '<td>' + (d.status === 'open' ? '<button class="btn btn-g bsm" style="font-size:10px" onclick="resolveDispute(\'' + d.id + '\')">Resolve</button>' : '<span style="font-size:10px;color:var(--faint)">' + esc(d.resolution || '') + '</span>') + '</td>'
+      + '</tr>';
+  }).join('');
+}
+
+async function submitForReview(idx) {
+  var d = window._payoutQueue && window._payoutQueue[idx];
+  if (!d) return;
+  try {
+    var res = await fetch(commBase(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': SESSION.password },
+      body: JSON.stringify({
+        action: 'submitReview', repId: d.repId, repName: d.repName,
+        month: d.month, monthLabel: d.monthLabel,
+        totalCommission: d.amount, invoiceCount: d.invoiceNums.length,
+        invoiceNums: d.invoiceNums
+      })
+    });
+    var result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Failed');
+    await loadReviews();
+    renderPayoutPanel();
+  } catch (err) { alert('Error: ' + err.message); }
+}
+
+async function approveReview(reviewId) {
+  var note = prompt('Approval note (optional):', '') || '';
+  try {
+    var res = await fetch(commBase(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': SESSION.password },
+      body: JSON.stringify({ action: 'approveReview', reviewId: reviewId, note: note })
+    });
+    var d = await res.json();
+    if (!res.ok) throw new Error(d.error || 'Failed');
+    await loadReviews();
+    renderPayoutPanel();
+  } catch (err) { alert('Error: ' + err.message); }
+}
+
+async function rejectReview(reviewId) {
+  var note = prompt('Reason for rejection:', '');
+  if (note === null) return;
+  try {
+    var res = await fetch(commBase(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': SESSION.password },
+      body: JSON.stringify({ action: 'rejectReview', reviewId: reviewId, note: note })
+    });
+    var d = await res.json();
+    if (!res.ok) throw new Error(d.error || 'Failed');
+    await loadReviews();
+    renderPayoutPanel();
+  } catch (err) { alert('Error: ' + err.message); }
+}
+
+async function repAcknowledge(month) {
+  if (!confirm('Confirm: you have reviewed your commission detail for this month and it is accurate.')) return;
+  try {
+    var res = await fetch(commBase(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-User-Password': SESSION.password },
+      body: JSON.stringify({ action: 'repAcknowledge', month: month })
+    });
+    var d = await res.json();
+    if (!res.ok) throw new Error(d.error || 'Failed');
+    await loadReviews();
+    renderDash();
+  } catch (err) { alert('Error: ' + err.message); }
+}
+
+function openDispute(jobId, jobNumber, invoiceNumber) {
+  var note = prompt('Describe the issue with Job ' + jobNumber + ':');
+  if (!note) return;
+  submitDisputeToServer(jobId, jobNumber, invoiceNumber, note);
+}
+
+async function submitDisputeToServer(jobId, jobNumber, invoiceNumber, note) {
+  try {
+    var res = await fetch(commBase(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-User-Password': SESSION.password },
+      body: JSON.stringify({ action: 'submitDispute', jobId: jobId, jobNumber: jobNumber, invoiceNumber: invoiceNumber, note: note })
+    });
+    var d = await res.json();
+    if (!res.ok) throw new Error(d.error || 'Failed');
+    await loadDisputes();
+    renderDash();
+    alert('Dispute submitted. Admin has been notified.');
+  } catch (err) { alert('Error: ' + err.message); }
+}
+
+async function resolveDispute(disputeId) {
+  var resolution = prompt('Resolution note:');
+  if (resolution === null) return;
+  try {
+    var res = await fetch(commBase(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': SESSION.password },
+      body: JSON.stringify({ action: 'resolveDispute', disputeId: disputeId, resolution: resolution })
+    });
+    var d = await res.json();
+    if (!res.ok) throw new Error(d.error || 'Failed');
+    await loadDisputes();
+  } catch (err) { alert('Error: ' + err.message); }
+}
+
 </script>
 </body>
 </html>
