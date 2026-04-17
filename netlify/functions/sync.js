@@ -1,10 +1,7 @@
 const { getStore } = require('@netlify/blobs');
 const https = require('https');
 
-// Netlify scheduled function — runs nightly at 2am ET
-exports.config = {
-  schedule: '0 7 * * *' // 2am ET = 7am UTC
-};
+exports.config = { schedule: '0 7 * * *' }; // 2am ET
 
 exports.handler = async (event) => {
   const H = {
@@ -13,16 +10,12 @@ exports.handler = async (event) => {
     'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Password',
     'Content-Type': 'application/json',
   };
-
   if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers: H, body: '' };
 
-  // Manual trigger — check admin password
   const adminPw = process.env.ADMIN_PASSWORD;
   if (event.httpMethod === 'POST' && adminPw) {
     const incoming = (event.headers && (event.headers['x-admin-password'] || event.headers['X-Admin-Password'])) || '';
-    if (incoming !== adminPw) {
-      return { statusCode: 403, headers: H, body: JSON.stringify({ error: 'Admin access required' }) };
-    }
+    if (incoming !== adminPw) return { statusCode: 403, headers: H, body: JSON.stringify({ error: 'Admin access required' }) };
   }
 
   const apiUrl = process.env.BUILDOPS_API_URL || 'https://api.buildops.com';
@@ -31,109 +24,77 @@ exports.handler = async (event) => {
   const clientSec = process.env.BUILDOPS_CLIENT_SECRET || '';
 
   try {
-    // Initialize Blobs
     const siteId = process.env.NETLIFY_SITE_ID || process.env.SITE_ID || '';
-    const blobToken = process.env.NETLIFY_TOKEN || process.env.NETLIFY_ACCESS_TOKEN || process.env.NETLIFY_AUTH_TOKEN || '';
-
+    const blobToken = process.env.NETLIFY_TOKEN || process.env.NETLIFY_ACCESS_TOKEN || '';
     let store;
-    if (siteId && blobToken) {
-      store = getStore({ name: 'commission', siteID: siteId, token: blobToken });
-    } else {
-      try {
-        store = getStore({ name: 'commission', consistency: 'strong' });
-      } catch (e) {
-        return {
-          statusCode: 500, headers: H, body: JSON.stringify({
-            error: 'Blobs not configured. Set NETLIFY_SITE_ID and NETLIFY_TOKEN.'
-          })
-        };
-      }
+    if (siteId && blobToken) store = getStore({ name: 'commission', siteID: siteId, token: blobToken });
+    else try { store = getStore({ name: 'commission', consistency: 'strong' }); } catch(e) {
+      return { statusCode: 500, headers: H, body: JSON.stringify({ error: 'Blobs not configured.' }) };
     }
 
-    console.log('[Sync] Config — apiUrl:', !!apiUrl, 'tenantId:', !!tenantId, 'clientId:', !!clientId, 'clientSec:', !!clientSec);
+    if (!clientId || !clientSec) return { statusCode: 500, headers: H, body: JSON.stringify({ error: 'Missing BUILDOPS_CLIENT_ID / BUILDOPS_CLIENT_SECRET.' }) };
 
-    if (!clientId || !clientSec) {
-      return {
-        statusCode: 500, headers: H, body: JSON.stringify({
-          error: 'Missing BuildOps credentials. Set BUILDOPS_CLIENT_ID and BUILDOPS_CLIENT_SECRET.'
-        })
-      };
-    }
-
-    // Authenticate
     const token = await getToken(apiUrl, clientId, clientSec);
     console.log('[Sync] Authenticated');
 
-    const results = {};
-    const errors = {};
+    const results = {}, errors = {};
 
-    // Fetch employees and customers in parallel
-    await Promise.all([
-      fetchAll(apiUrl, token, tenantId, '/v1/employees', 200)
-        .then(d => { results.employees = d; console.log('[Sync] Employees:', d.length); })
-        .catch(e => { errors.employees = e.message; console.error('[Sync] Employees failed:', e.message); }),
-      fetchAll(apiUrl, token, tenantId, '/v1/customers', 500)
-        .then(d => { results.customers = d; console.log('[Sync] Customers:', d.length); })
-        .catch(e => { errors.customers = e.message; console.error('[Sync] Customers failed:', e.message); }),
-    ]);
+    // BuildOps API spec (2025-01-23):
+    //   All list endpoints: max 100/page, default 10
+    //   Employees:  page_size param
+    //   Customers:  limit param (NOT page_size)
+    //   Jobs:       page_size or limit
+    //   Invoices:   page_size
+    //   Quotes:     page_size
+    const endpoints = [
+      { key: 'employees', path: '/v1/employees', sizeParam: 'page_size' },
+      { key: 'customers', path: '/v1/customers', sizeParam: 'limit' },
+      { key: 'jobs',      path: '/v1/jobs',      sizeParam: 'page_size' },
+      { key: 'invoices',  path: '/v1/invoices',  sizeParam: 'page_size' },
+      { key: 'quotes',    path: '/v1/quotes',    sizeParam: 'page_size' },
+    ];
 
-    // Fetch jobs, invoices, quotes sequentially to avoid rate limits
-    for (const [key, path, pageSize] of [
-      ['jobs', '/v1/jobs', 100],
-      ['invoices', '/v1/invoices', 100],
-      ['quotes', '/v1/quotes', 100],
-    ]) {
+    for (const ep of endpoints) {
       try {
-        const data = await fetchAll(apiUrl, token, tenantId, path, pageSize);
-        results[key] = data;
-        console.log(`[Sync] ${key}:`, data.length);
+        results[ep.key] = await fetchAll(apiUrl, token, tenantId, ep.path, ep.sizeParam);
+        console.log(`[Sync] ${ep.key}: ${results[ep.key].length}`);
       } catch (e) {
-        errors[key] = e.message;
-        console.error(`[Sync] ${key} failed:`, e.message);
+        errors[ep.key] = e.message;
+        console.error(`[Sync] ${ep.key} failed:`, e.message);
       }
+      await new Promise(r => setTimeout(r, 300));
     }
 
-    // Store each dataset
     const syncedAt = new Date().toISOString();
-    for (const [key, data] of Object.entries(results)) {
-      await store.set('data:' + key, JSON.stringify(data));
-    }
+    for (const [key, data] of Object.entries(results)) await store.set('data:' + key, JSON.stringify(data));
     await store.set('data:syncedAt', syncedAt);
     await store.set('data:syncErrors', JSON.stringify(errors));
 
-    const summary = {
-      syncedAt,
-      counts: Object.fromEntries(Object.entries(results).map(([k, v]) => [k, v.length])),
-      errors,
-    };
+    const summary = { syncedAt, counts: Object.fromEntries(Object.entries(results).map(([k,v]) => [k, v.length])), errors };
     console.log('[Sync] Complete:', JSON.stringify(summary));
     return { statusCode: 200, headers: H, body: JSON.stringify(summary) };
-
   } catch (err) {
     console.error('[Sync] Fatal:', err.message);
     return { statusCode: 500, headers: H, body: JSON.stringify({ error: err.message }) };
   }
 };
 
-async function fetchAll(apiUrl, token, tenantId, path, pageSize) {
+async function fetchAll(apiUrl, token, tenantId, path, sizeParam) {
+  const PS = 100;
   let all = [], page = 0;
   while (true) {
-    // Send both param formats — BuildOps may use either
-    const url = apiUrl + path + '?page=' + page + '&page_size=' + pageSize + '&pageSize=' + pageSize;
+    const url = `${apiUrl}${path}?page=${page}&${sizeParam}=${PS}`;
     const raw = await apiGet(url, token, tenantId);
-    const d = JSON.parse(raw);
+    let d; try { d = JSON.parse(raw); } catch(e) { throw new Error('Bad JSON from ' + path); }
     const items = Array.isArray(d) ? d : (d.items || []);
     all = all.concat(items);
-    const total = (d.query && d.query.totalCount) || d.totalCount || 0;
-    console.log('[Sync] page=' + page + ' got=' + items.length + ' total=' + all.length + ' apiTotal=' + total);
-    // Stop if no items returned
+    const total = d.totalCount || (d.query && d.query.totalCount) || 0;
+    console.log(`[Sync] ${path} p${page} +${items.length} =${all.length}/${total}`);
     if (items.length === 0) break;
-    // Stop if we've reached the known total
     if (total > 0 && all.length >= total) break;
-    // Stop only if no total reported AND we got fewer than requested
-    if (total === 0 && items.length < pageSize) break;
+    if (total === 0 && items.length < PS) break;
     page++;
-    await new Promise(r => setTimeout(r, 200));
+    await new Promise(r => setTimeout(r, 250));
   }
   return all;
 }
@@ -142,41 +103,29 @@ function getToken(apiUrl, clientId, clientSecret) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({ clientId, clientSecret });
     const url = new URL(apiUrl + '/v1/auth/token');
-    const opts = {
-      hostname: url.hostname, path: url.pathname, method: 'POST',
+    const req = https.request({ hostname: url.hostname, path: url.pathname, method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
-    };
-    const req = https.request(opts, res => {
-      let d = '';
-      res.on('data', c => d += c);
+    }, res => {
+      let d = ''; res.on('data', c => d += c);
       res.on('end', () => {
-        try {
-          const j = JSON.parse(d);
-          const t = j.access_token || j.token || j.accessToken;
-          if (!t) reject(new Error('No token in response'));
-          else resolve(t);
-        } catch (e) { reject(e); }
+        if (res.statusCode !== 200) return reject(new Error('Auth ' + res.statusCode + ': ' + d.slice(0,200)));
+        try { const j = JSON.parse(d); j.access_token ? resolve(j.access_token) : reject(new Error('No access_token')); }
+        catch(e) { reject(new Error('Auth parse fail')); }
       });
     });
-    req.on('error', reject);
-    req.write(body);
-    req.end();
+    req.on('error', reject); req.write(body); req.end();
   });
 }
 
 function apiGet(url, token, tenantId) {
   return new Promise((resolve, reject) => {
     const u = new URL(url);
-    const opts = {
-      hostname: u.hostname, path: u.pathname + (u.search || ''), method: 'GET',
-      headers: { 'Authorization': 'Bearer ' + token, 'tenantId': tenantId }
-    };
-    const req = https.request(opts, res => {
-      let d = '';
-      res.on('data', c => d += c);
-      res.on('end', () => resolve(d));
+    const headers = { 'Authorization': 'Bearer ' + token };
+    if (tenantId) headers['tenantId'] = tenantId;
+    const req = https.request({ hostname: u.hostname, path: u.pathname + (u.search||''), method: 'GET', headers }, res => {
+      let d = ''; res.on('data', c => d += c);
+      res.on('end', () => res.statusCode === 200 ? resolve(d) : reject(new Error(res.statusCode + ' ' + u.pathname + ': ' + d.slice(0,200))));
     });
-    req.on('error', reject);
-    req.end();
+    req.on('error', reject); req.end();
   });
 }
