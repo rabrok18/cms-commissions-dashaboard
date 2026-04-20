@@ -153,7 +153,7 @@ body{font-family:'Sora',sans-serif;background:var(--surface2);color:var(--text);
 }
 .kpi:hover{box-shadow:var(--sh2)}
 .kpi-l{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:1.2px;color:var(--faint);margin-bottom:6px}
-.kpi-v{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:500;line-height:1;letter-spacing:-.5px;color:var(--text)}
+.kpi-v{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:600;line-height:1;letter-spacing:-.8px;color:var(--text)}
 .kpi-v.bl{color:var(--blue)}.kpi-v.gr{color:var(--green)}.kpi-v.rd{color:var(--red)}.kpi-v.am{color:var(--amber)}.kpi-v.pu{color:var(--purple)}
 .kpi-n{font-size:10px;color:var(--faint);margin-top:4px}
 
@@ -843,6 +843,9 @@ async function initApp(){
   var syncBtn = document.getElementById('sync-btn');
   if(syncBtn) syncBtn.style.display = isAdmin ? 'inline-flex' : 'none';
 
+  var syncBtn=document.getElementById('sync-btn');
+  if(syncBtn) syncBtn.style.display = isAdmin ? 'inline-flex' : 'none';
+
   ['tab-users-btn','tab-payouts-btn','tab-rates-btn','tab-api-btn'].forEach(function(id){
     document.getElementById(id).classList.toggle('hidden', !isAdmin);
   });
@@ -891,25 +894,82 @@ function switchTab(t){
 
 // ── DATA LOAD ─────────────────────────────────────────────
 async function loadData(){
-  showDashLoading('Loading data from BuildOps…');
+  // Try cache first, fall back to direct fetch
+  var loaded = await loadFromCache();
+  if(!loaded){
+    await loadFromBuildOps();
+  }
+}
+
+async function loadFromCache(){
+  showDashLoading('Loading from cache…');
+  try{
+    // Get sync status
+    var ss = await fetch(commBase()+'?action=syncStatus').then(function(r){return r.json();});
+    updateSyncStatus(ss);
+
+    if(!ss.syncedAt){
+      document.getElementById('dash-body').innerHTML='<div class="empty"><div class="empty-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></div><p>No data cached yet.</p><p style="font-size:11px;margin-top:4px">Click <strong>Sync from BuildOps</strong> to pull data.</p></div>';
+      return false;
+    }
+
+    // Load all cached datasets in parallel (instant — no pagination loops)
+    var results = await Promise.all([
+      fetch(commBase()+'?action=data&key=jobs').then(function(r){return r.json();}),
+      fetch(commBase()+'?action=data&key=invoices').then(function(r){return r.json();}),
+      fetch(commBase()+'?action=data&key=employees').then(function(r){return r.json();}),
+      fetch(commBase()+'?action=data&key=customers').then(function(r){return r.json();}),
+    ]);
+
+    jobs     = results[0].items || [];
+    invoices = results[1].items || [];
+    var empList = results[2].items || [];
+    var custList = results[3].items || [];
+
+    empMap = {};
+    empList.forEach(function(e){
+      if(e&&e.id) empMap[e.id] = [e.firstName||'',e.lastName||''].filter(Boolean).join(' ').trim() || e.name || e.id;
+    });
+
+    custMap = {};
+    custList.forEach(function(c){ if(c&&c.id) custMap[c.id]=c; });
+
+    console.log('[CMS] Cache loaded — jobs:', jobs.length, 'invoices:', invoices.length, 'employees:', empList.length, 'customers:', custList.length);
+
+    // Log sample customer to see tag structure
+    if(custList.length > 0){
+      console.log('[CMS] Sample customer fields:', Object.keys(custList[0]).join(', '));
+      var tagged = custList.filter(function(c){return c.tags&&c.tags.length;});
+      console.log('[CMS] Customers with tags:', tagged.length);
+      if(tagged.length > 0) console.log('[CMS] First tagged customer:', JSON.stringify(tagged[0]).slice(0,300));
+    }
+
+    buildRepFilter();
+    enrich();
+    renderDash();
+    renderPayoutPanel();
+    return true;
+  }catch(err){
+    console.error('[CMS] Cache load failed:', err);
+    return false;
+  }
+}
+
+async function loadFromBuildOps(){
+  showDashLoading('Loading data from BuildOps… (cache empty)');
   try{
     showDashLoading('Loading jobs…');
     jobs = await fetchAllProxy('/v1/jobs');
-    console.log('[CMS] Jobs:', jobs.length);
 
-    showDashLoading('Loading invoices ('+jobs.length+' jobs loaded)…');
+    showDashLoading('Loading invoices…');
     invoices = await fetchAllProxy('/v1/invoices');
-    console.log('[CMS] Invoices:', invoices.length);
 
-    // Employees — list returns 0, so fetch individually by accountManagerId
-    showDashLoading('Loading employee names…');
+    showDashLoading('Loading employees…');
     empMap={};
     var empIds={};
     jobs.forEach(function(j){if(j.accountManagerId)empIds[j.accountManagerId]=true;});
     var ids=Object.keys(empIds);
-    console.log('[CMS] Unique account managers:', ids.length);
     for(var i=0;i<ids.length;i++){
-      showDashLoading('Loading employees… '+(i+1)+'/'+ids.length);
       try{
         var emp=await callProxy('/v1/employees/'+ids[i]);
         if(emp&&emp.id){
@@ -918,9 +978,7 @@ async function loadData(){
         }
       }catch(err){}
     }
-    console.log('[CMS] Employee names resolved:', Object.keys(empMap).length);
 
-    // Customers — try list, fall back to individual lookups
     showDashLoading('Loading customers…');
     custMap={};
     try{
@@ -931,21 +989,14 @@ async function loadData(){
       var custIds={};
       jobs.forEach(function(j){if(j.billingCustomerId)custIds[j.billingCustomerId]=true;});
       var cids=Object.keys(custIds);
-      console.log('[CMS] Fetching', cids.length, 'customers individually');
       for(var ci=0;ci<cids.length;ci++){
         showDashLoading('Loading customers… '+(ci+1)+'/'+cids.length);
         try{
           var c=await callProxy('/v1/customers/'+cids[ci]);
-          if(c&&c.id){
-            custMap[c.id]=c;
-            if(c.tags&&c.tags.length){
-              console.log('[CMS] Customer tags:', c.name||c.companyName||c.id, '->', c.tags.map(function(t){return t.name||t.label||t;}).join(', '));
-            }
-          }
+          if(c&&c.id) custMap[c.id]=c;
         }catch(e){}
       }
     }
-    console.log('[CMS] Customers:', Object.keys(custMap).length);
 
     buildRepFilter();
     enrich();
@@ -953,7 +1004,74 @@ async function loadData(){
     renderPayoutPanel();
   }catch(err){
     document.getElementById('dash-body').innerHTML='<div class="empty"><p style="color:var(--red)">Error: '+esc(err.message)+'</p></div>';
-    console.error(err);
+  }
+}
+
+async function fetchAllProxy(endpoint){
+  var all=[],page=0;
+  while(page<50){
+    showDashLoading('Loading '+endpoint.split('/v1/')[1]+' — '+all.length+' records…');
+    var d=await callProxy(endpoint+'?page='+page+'&page_size=100&limit=100');
+    var items=Array.isArray(d)?d:(d&&Array.isArray(d.items)?d.items:[]);
+    all=all.concat(items);
+    var total=(d&&d.totalCount)||(d&&d.query&&d.query.totalCount)||0;
+    if(items.length===0||items.length<100)break;
+    if(total>0&&all.length>=total)break;
+    page++;
+  }
+  return all;
+}
+
+function updateSyncStatus(ss){
+  var el=document.getElementById('sync-status');
+  if(!el) return;
+  if(ss.status && ss.status.running){
+    el.innerHTML='<span class="spin" style="width:10px;height:10px;display:inline-block;margin-right:4px;vertical-align:-1px"></span>Syncing: '+esc(ss.status.step||'running…');
+    el.style.color='#fbbf24';
+    return;
+  }
+  if(!ss.syncedAt){
+    el.textContent='Never synced';
+    el.style.color='rgba(255,255,255,.3)';
+    return;
+  }
+  var ago=Math.floor((Date.now()-new Date(ss.syncedAt))/60000);
+  var label=ago<60?ago+'m ago':ago<1440?Math.floor(ago/60)+'h ago':new Date(ss.syncedAt).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  el.textContent='Synced '+label;
+  el.style.color='rgba(255,255,255,.5)';
+}
+
+async function syncNow(){
+  var btn=document.getElementById('sync-btn');
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span> Starting…';}
+  try{
+    // Background function returns 202 immediately
+    var res=await fetch('/.netlify/functions/sync-background',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Admin-Password':SESSION.password||''}
+    });
+    if(res.status!==202 && res.status!==200){
+      var text=await res.text();
+      throw new Error('Sync trigger failed: '+res.status+' '+text.slice(0,100));
+    }
+    console.log('[CMS] Sync started in background');
+    if(btn){btn.innerHTML='<span class="spin"></span> Syncing…';}
+    // Poll for status every 3 seconds
+    var pollInterval = setInterval(async function(){
+      try{
+        var ss=await fetch(commBase()+'?action=syncStatus').then(function(r){return r.json();});
+        updateSyncStatus(ss);
+        if(!ss.status || !ss.status.running){
+          clearInterval(pollInterval);
+          if(btn){btn.disabled=false;btn.innerHTML='<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/><polyline points="12 6 12 12 16 14"/></svg> Sync from BuildOps';}
+          // Reload from cache
+          await loadFromCache();
+        }
+      }catch(e){ console.warn('Poll error:',e.message); }
+    }, 3000);
+  }catch(err){
+    alert('Sync failed: '+err.message);
+    if(btn){btn.disabled=false;btn.innerHTML='<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/><polyline points="12 6 12 12 16 14"/></svg> Sync from BuildOps';}
   }
 }
 
@@ -1052,11 +1170,15 @@ function enrich(){
     var custName=job.billingCustomerName||'Unknown';
     var assignedTag=customerTags[custName]||'';
     var cust=custMap[job.billingCustomerId]||{};
-    var apiTags=Array.isArray(cust.tags)?cust.tags.map(function(t){return(t&&(t.name||t.label||t)||'').toLowerCase();}):[];
+    // Try multiple possible tag field names
+    var rawTags = cust.tags || cust.customerTags || cust.categoryTags || cust.categories || cust.labels || [];
+    var apiTags = Array.isArray(rawTags) ? rawTags.map(function(t){
+      return typeof t==='string' ? t.toLowerCase() : ((t&&(t.name||t.label||t.value||t.tagName))||'').toLowerCase();
+    }).filter(Boolean) : [];
     var isHouse=assignedTag==='house'||apiTags.some(function(t){return t.includes('house');});
     var isRep=assignedTag==='rep'||(!isHouse&&apiTags.length>0);
     var tagType=isHouse?'house':(isRep?'rep':'none');
-    var tagLabel=isHouse?'House':(isRep?'Rep':'—');
+    var tagLabel=isHouse?'House':(isRep?(apiTags[0]?cap(apiTags[0]):'Rep'):'—');
     var rate=RATES[tagType]||RATES.rep||5;
     var s=(job.status||'').toLowerCase();
     var isComplete=s==='completed'||s==='complete'||s==='closed';
@@ -1207,12 +1329,12 @@ function renderDash(){
   // KPIs
   var invoicedCt=rows.filter(function(r){return r.invoiced;}).length;
   html+='<div class="kpis">';
-  html+=kpi('Invoiced',fmt(totalSub),invoicedCt+' invoices','bl');
-  html+=kpi('Commission',fmt(earned+pending+cbAmt),'total calculated','pu');
-  html+=kpi('Earned',fmt(earned),'paid by client','gr');
-  html+=kpi('Pending',fmt(pending),'awaiting payment','am');
-  html+=kpi('Clawback',fmt(cbAmt),cbCnt>0?cbCnt+' at risk':'none','rd');
-  html+=kpi('Jobs',rows.length+' / '+enriched.length,completeCt+' complete','');
+  html+=kpi('Total Invoiced',fmt(totalSub),invoicedCt+' invoices','bl');
+  html+=kpi('Commission Due',fmt(earned+pending+cbAmt),'based on rates','pu');
+  html+=kpi('Earned',fmt(earned),'client has paid','gr');
+  html+=kpi('Pending',fmt(pending),'awaiting client','am');
+  html+=kpi('At Risk',fmt(cbAmt),cbCnt>0?cbCnt+' clawback':'none','rd');
+  html+=kpi('Jobs Shown',rows.length+'',completeCt+' complete · '+enriched.length+' total','');
   html+='</div>';
 
   // Leaderboard — admin only
@@ -1299,7 +1421,7 @@ function renderDash(){
   // Main table
   var cols=[
     {k:'jobNumber',l:'Job'},
-    {k:'jobDesc',l:'Description'},
+    {k:'jobDesc',l:'Job Description'},
     {k:'custName',l:'Customer'},
     {k:'tagType',l:'Tag'},
   ];
@@ -1307,8 +1429,10 @@ function renderDash(){
   cols=cols.concat([
     {k:'jobStatus',l:'Job Status'},
     {k:'invNumber',l:'Invoice #'},
+    {k:'invDesc',l:'Invoice Desc'},
     {k:'issuedDate',l:'Invoice Date'},
     {k:'invStatus',l:'Invoice Status'},
+    {k:'invDesc',l:'Description'},
     {k:'subtotal',l:'Subtotal',cls:'n'},
     {k:'rate',l:'Rate',cls:'n'},
     {k:'commission',l:'Commission',cls:'n'},
@@ -1330,14 +1454,16 @@ function renderDash(){
     var rc=r.isClawback?' class="cb-row"':r.isWarn?' class="warn-row"':'';
     html+='<tr'+rc+'>';
     html+='<td class="nm">'+esc(r.jobNumber)+'</td>';
-    html+='<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(r.jobDesc||'')+'">'+esc(r.jobDesc||'—')+'</td>';
     html+='<td>'+esc(r.custName)+'</td>';
     html+='<td>'+tBadge(r)+'</td>';
     if(isAdmin) html+='<td>'+esc(r.repName)+'</td>';
     html+='<td>'+jsBadge(r.jobStatus)+'</td>';
     html+='<td>'+(r.invoiced?esc(r.invNumber):'<span style="color:var(--faint)">—</span>')+'</td>';
+    html+='<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(r.invDesc||'')+'">'+(r.invoiced?esc(r.invDesc||'—'):'<span style="color:var(--faint)">—</span>')+'</td>';
     html+='<td>'+fd(r.issuedDate)+'</td>';
     html+='<td>'+invBadge(r.invStatus)+'</td>';
+    var desc=r.invDesc||r.jobDesc||'';
+    html+='<td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(desc)+'">'+(desc?esc(desc):'<span style="color:var(--faint)">—</span>')+'</td>';
     html+='<td class="n">'+(r.invoiced?fmt(r.subtotal):'—')+'</td>';
     html+='<td class="n">'+(r.invoiced?r.rate+'%':'—')+'</td>';
     html+='<td class="n" style="font-weight:700;color:'+(r.isPaid?'var(--green)':r.isClawback?'var(--red)':r.invoiced?'var(--accent)':'var(--faint)')+'">'+( r.invoiced?fmt(r.commission):'—')+'</td>';
