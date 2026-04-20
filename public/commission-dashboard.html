@@ -457,12 +457,17 @@ input[type="date"]{color-scheme:dark}
           <option value="open">Open</option>
         </select>
         <input class="fsrch" id="f-search" placeholder="Search…" oninput="renderDash()">
+        <select class="fsel" id="f-invoiced" onchange="renderDash()">
+          <option value="invoiced" selected>Invoiced Only</option>
+          <option value="all">All Jobs</option>
+          <option value="notinvoiced">Not Invoiced</option>
+        </select>
         <div class="chip" id="cb-chip" onclick="toggleCB()">⚠ Clawbacks Only</div>
         <span class="rct" id="result-ct">—</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
-        
-        <button class="btn btn-g bsm" id="sync-btn" onclick="loadData()" style="display:none">
+        <span id="sync-status" style="font-size:11px;color:rgba(255,255,255,.3)">—</span>
+        <button class="btn btn-g bsm" id="sync-btn" onclick="syncNow()" style="display:none">
           <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
           Sync Now
         </button>
@@ -667,6 +672,33 @@ input[type="date"]{color-scheme:dark}
       </div>
     </div>
     <div class="card">
+      <div class="card-hdr">
+        <div class="card-title">
+          <div class="cico"><svg width="12" height="12" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></div>
+          Customer Tags
+          <span class="cnt" id="tag-count">0</span>
+        </div>
+        <button class="btn btn-p bsm" onclick="saveCustomerTags()">Save Tags</button>
+      </div>
+      <div class="card-body">
+        <div class="alert ainfo show" style="margin-bottom:14px">
+          Assign <strong>House</strong> or <strong>Rep</strong> to each customer. House accounts get the lower commission rate. Changes apply immediately after saving.
+        </div>
+        <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <input class="fsrch" id="tag-search" placeholder="Search customers…" oninput="renderTagManager()" style="flex:1;min-width:200px">
+          <select class="fsel" id="tag-filter" onchange="renderTagManager()">
+            <option value="all">All</option>
+            <option value="untagged">Untagged</option>
+            <option value="house">House</option>
+            <option value="rep">Rep</option>
+          </select>
+        </div>
+        <div id="tag-list" style="max-height:400px;overflow-y:auto;border:1px solid var(--line);border-radius:var(--r2)"></div>
+        <div class="alert" id="tag-alert" style="margin-top:10px"></div>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="card-hdr"><div class="card-title">Proxy Settings</div></div>
       <div class="card-body">
         <div class="frow">
@@ -752,6 +784,7 @@ var SITE_URL = localStorage.getItem('cms-site-url') || '';
 var SESSION  = null;
 var RATES    = {house:3,rep:5,none:5,cbDays:90};
 var jobs=[], invoices=[], empMap={}, custMap={};
+var customerTags=JSON.parse(localStorage.getItem('cms-customer-tags')||'{}');
 var enriched=[];
 var cbOnly=false, sortCol='issuedDate', sortDir='desc';
 
@@ -858,98 +891,108 @@ function switchTab(t){
 async function loadData(){
   showDashLoading('Loading data from BuildOps…');
   try{
-    // Load all data through proxy in parallel
     showDashLoading('Loading jobs…');
-    var jobPages = await fetchAllProxy('/v1/jobs');
-    jobs = jobPages;
-    console.log('[Commission] Jobs:', jobs.length);
+    jobs = await fetchAllProxy('/v1/jobs');
+    console.log('[CMS] Jobs:', jobs.length);
 
     showDashLoading('Loading invoices ('+jobs.length+' jobs loaded)…');
-    var invPages = await fetchAllProxy('/v1/invoices');
-    invoices = invPages;
-    console.log('[Commission] Invoices:', invoices.length);
+    invoices = await fetchAllProxy('/v1/invoices');
+    console.log('[CMS] Invoices:', invoices.length);
 
-    showDashLoading('Loading employees…');
-    empMap = {};
-    try{
-      // Try page_size=100 and limit=100 (BuildOps may use either)
-      var ed = await callProxy('/v1/employees?page=0&page_size=100&limit=100');
-      console.log('[CMS] Employees raw response type:', typeof ed, 'keys:', ed ? Object.keys(ed).slice(0,5).join(',') : 'null');
-      console.log('[CMS] Employees raw (first 500):', JSON.stringify(ed).slice(0,500));
-      var empList = Array.isArray(ed) ? ed : (ed && Array.isArray(ed.items) ? ed.items : []);
-      console.log('[CMS] Employee list length:', empList.length);
-      if(empList.length > 0){
-        console.log('[CMS] First employee fields:', Object.keys(empList[0]).join(', '));
-        console.log('[CMS] First employee:', JSON.stringify(empList[0]).slice(0,300));
-      }
-      empList.forEach(function(emp){
-        if(emp && emp.id){
-          // Try multiple name field combinations
-          var name = [emp.firstName||'', emp.lastName||''].filter(Boolean).join(' ').trim()
-            || emp.name || emp.displayName || emp.fullName || emp.username || '';
-          empMap[emp.id] = name || emp.id;
-        }
-      });
-    }catch(err){
-      console.error('[CMS] Employees FAILED:', err.message);
-      // Try fetching all pages if single page failed
+    // Employees — list returns 0, so fetch individually by accountManagerId
+    showDashLoading('Loading employee names…');
+    empMap={};
+    var empIds={};
+    jobs.forEach(function(j){if(j.accountManagerId)empIds[j.accountManagerId]=true;});
+    var ids=Object.keys(empIds);
+    console.log('[CMS] Unique account managers:', ids.length);
+    for(var i=0;i<ids.length;i++){
+      showDashLoading('Loading employees… '+(i+1)+'/'+ids.length);
       try{
-        var empPages = await fetchAllProxy('/v1/employees');
-        empPages.forEach(function(emp){
-          if(emp && emp.id){
-            var name = [emp.firstName||'', emp.lastName||''].filter(Boolean).join(' ').trim()
-              || emp.name || emp.displayName || '';
-            empMap[emp.id] = name || emp.id;
-          }
-        });
-        console.log('[CMS] Employees via pagination:', Object.keys(empMap).length);
-      }catch(err2){ console.error('[CMS] Employees pagination also failed:', err2.message); }
+        var emp=await callProxy('/v1/employees/'+ids[i]);
+        if(emp&&emp.id){
+          var nm=[emp.firstName||'',emp.lastName||''].filter(Boolean).join(' ').trim()||emp.name||'';
+          if(nm) empMap[emp.id]=nm;
+        }
+      }catch(err){}
     }
-    console.log('[CMS] Final empMap:', Object.keys(empMap).length, 'entries');
-    if(Object.keys(empMap).length > 0){
-      var sample = Object.entries(empMap).slice(0,3).map(function(e){return e[0].slice(0,8)+'->'+e[1];}).join(', ');
-      console.log('[CMS] empMap sample:', sample);
-    }
+    console.log('[CMS] Employee names resolved:', Object.keys(empMap).length);
 
+    // Customers — try list, fall back to individual lookups
     showDashLoading('Loading customers…');
-    custMap = {};
+    custMap={};
     try{
-      var custPages = await fetchAllProxy('/v1/customers');
-      console.log('[CMS] Customers loaded:', custPages.length);
-      custPages.forEach(function(c){ if(c && c.id) custMap[c.id] = c; });
-    }catch(err){ console.error('[CMS] Customers failed:', err.message); }
-    console.log('[CMS] Final custMap:', Object.keys(custMap).length, 'entries');
+      var custList=await fetchAllProxy('/v1/customers');
+      custList.forEach(function(c){if(c&&c.id)custMap[c.id]=c;});
+    }catch(err){}
+    if(Object.keys(custMap).length===0){
+      var custIds={};
+      jobs.forEach(function(j){if(j.billingCustomerId)custIds[j.billingCustomerId]=true;});
+      var cids=Object.keys(custIds).slice(0,50);
+      for(var ci=0;ci<cids.length;ci++){
+        showDashLoading('Loading customers… '+(ci+1)+'/'+cids.length);
+        try{var c=await callProxy('/v1/customers/'+cids[ci]);if(c&&c.id)custMap[c.id]=c;}catch(e){}
+      }
+    }
+    console.log('[CMS] Customers:', Object.keys(custMap).length);
 
-    console.log('[Commission] All data loaded — jobs:', jobs.length, 'invoices:', invoices.length);
     buildRepFilter();
     enrich();
     renderDash();
     renderPayoutPanel();
   }catch(err){
     document.getElementById('dash-body').innerHTML='<div class="empty"><p style="color:var(--red)">Error: '+esc(err.message)+'</p></div>';
-    console.error('[Commission] loadData error:', err);
+    console.error(err);
   }
 }
 
 async function fetchAllProxy(endpoint){
-  var all=[], page=0, maxPages=50;
-  while(page < maxPages){
+  var all=[],page=0;
+  while(page<50){
     showDashLoading('Loading '+endpoint.split('/v1/')[1]+' — '+all.length+' records…');
-    // Send both page_size AND limit — BuildOps uses different params per endpoint
-    var d = await callProxy(endpoint+'?page='+page+'&page_size=100&limit=100');
-    var items = Array.isArray(d) ? d : (d && Array.isArray(d.items) ? d.items : []);
-    all = all.concat(items);
-    var total = (d && d.totalCount) || (d && d.query && d.query.totalCount) || 0;
-    console.log('[CMS] '+endpoint+' page '+page+': '+items.length+' items, total:'+total+', have:'+all.length);
-    if(items.length === 0) break;
-    if(total > 0 && all.length >= total) break;
-    if(items.length < 100) break;
+    var d=await callProxy(endpoint+'?page='+page+'&page_size=100&limit=100');
+    var items=Array.isArray(d)?d:(d&&Array.isArray(d.items)?d.items:[]);
+    all=all.concat(items);
+    var total=(d&&d.totalCount)||(d&&d.query&&d.query.totalCount)||0;
+    console.log('[CMS] '+endpoint+' p'+page+': '+items.length+' items, total:'+total+', have:'+all.length);
+    if(items.length===0||items.length<100)break;
+    if(total>0&&all.length>=total)break;
     page++;
   }
   return all;
 }
 
+function updateSyncStatus(syncedAt, errors){
+  var el=document.getElementById('sync-status');
+  if(!el) return;
+  if(!syncedAt){ el.textContent='Never synced'; el.style.color='rgba(255,255,255,.3)'; return; }
+  var ago=Math.floor((Date.now()-new Date(syncedAt))/60000);
+  var label=ago<60?ago+'m ago':ago<1440?Math.floor(ago/60)+'h ago':new Date(syncedAt).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  el.textContent='Synced '+label;
+  el.style.color='rgba(255,255,255,.4)';
+  if(errors&&Object.keys(errors).length){ el.textContent+=' ⚠'; el.title='Errors: '+JSON.stringify(errors); }
+}
 
+async function syncNow(){
+  var btn=document.getElementById('sync-btn');
+  if(btn){btn.innerHTML='<span class="spin"></span> Syncing…';btn.disabled=true;}
+  showDashLoading('Syncing from BuildOps — this takes 1-2 minutes for all records…');
+  try{
+    var res=await fetch('/.netlify/functions/sync',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Admin-Password':SESSION.password||''}
+    });
+    var d=await res.json();
+    if(!res.ok) throw new Error(d.error||'Sync failed');
+    console.log('[Commission] Sync complete:',d);
+    await loadData();
+  }catch(err){
+    alert('Sync failed: '+err.message);
+    showDashLoading(null);
+    document.getElementById('dash-body').innerHTML='<div class="empty"><p style="color:var(--red)">Sync error: '+esc(err.message)+'</p></div>';
+  }
+  if(btn){btn.innerHTML='<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Sync Now';btn.disabled=false;}
+}
 
 async function callProxy(path){
   var base=path.split('?')[0],qp=path.split('?')[1]||'';
@@ -994,12 +1037,15 @@ function enrich(){
 
   enriched=(Array.isArray(jobs)?jobs:[]).map(function(job){
     var repId=job.accountManagerId||'';
-    var repName=repId?(empMap[repId]||repId):'Unknown';
+    var repName=repId?(empMap[repId]||(repId.length>20?'Rep '+repId.slice(0,6):repId)):'Unassigned';
+    var custName=job.billingCustomerName||'Unknown';
+    var assignedTag=customerTags[custName]||'';
     var cust=custMap[job.billingCustomerId]||{};
-    var tags=Array.isArray(cust.tags)?cust.tags.map(function(t){return(t&&(t.name||t.label||t)||'').toLowerCase();}):[];
-    var isHouse=tags.some(function(t){return t.includes('house');});
-    var tagType=isHouse?'house':(tags.length?'rep':'none');
-    var tagLabel=isHouse?'House Account':(tags[0]?cap(tags[0]):'No Tag');
+    var apiTags=Array.isArray(cust.tags)?cust.tags.map(function(t){return(t&&(t.name||t.label||t)||'').toLowerCase();}):[];
+    var isHouse=assignedTag==='house'||apiTags.some(function(t){return t.includes('house');});
+    var isRep=assignedTag==='rep'||(!isHouse&&apiTags.length>0);
+    var tagType=isHouse?'house':(isRep?'rep':'none');
+    var tagLabel=isHouse?'House':(isRep?'Rep':'—');
     var rate=RATES[tagType]||RATES.rep||5;
     var s=(job.status||'').toLowerCase();
     var isComplete=s==='completed'||s==='complete'||s==='closed';
@@ -1105,6 +1151,9 @@ function getFiltered(){
         if(dt&&dt.value&&d>new Date(dt.value+'T23:59:59'))return false;
       }
     }
+    var invF=(document.getElementById('f-invoiced')||{}).value||'invoiced';
+    if(invF==='invoiced'&&!r.invoiced)return false;
+    if(invF==='notinvoiced'&&r.invoiced)return false;
     if(repF!=='all'&&r.repId!==repF)return false;
     if(tagF!=='all'&&r.tagType!==tagF)return false;
     if(stF!=='all'&&r.commStatus!==stF)return false;
@@ -1118,8 +1167,6 @@ function getFiltered(){
     if(av==null)av='';if(bv==null)bv='';
     if(av instanceof Date&&bv instanceof Date)return sortDir==='asc'?av-bv:bv-av;
     if(typeof av==='string'&&typeof bv==='string')return sortDir==='asc'?av.localeCompare(bv):bv.localeCompare(av);
-    av=typeof av==='string'?av:Number(av)||0;
-    bv=typeof bv==='string'?bv:Number(bv)||0;
     return sortDir==='asc'?av-bv:bv-av;
   });
 }
@@ -1142,13 +1189,14 @@ function renderDash(){
   var html='<div>';
 
   // KPIs
+  var invoicedCt=rows.filter(function(r){return r.invoiced;}).length;
   html+='<div class="kpis">';
-  html+=kpi('Jobs',rows.length,'in view','bl');
-  html+=kpi('Complete',completeCt,Math.round(completeCt/Math.max(rows.length,1)*100)+'%','gr');
-  html+=kpi('Invoice Subtotal',fmt(totalSub),'before tax','');
-  html+=kpi('Earned',fmt(earned),'commissions paid','gr');
+  html+=kpi('Invoiced',fmt(totalSub),invoicedCt+' invoices','bl');
+  html+=kpi('Commission',fmt(earned+pending+cbAmt),'total calculated','pu');
+  html+=kpi('Earned',fmt(earned),'paid by client','gr');
   html+=kpi('Pending',fmt(pending),'awaiting payment','am');
-  html+=kpi('Clawback Risk',fmt(cbAmt),cbCnt+' invoices','rd');
+  html+=kpi('Clawback',fmt(cbAmt),cbCnt>0?cbCnt+' at risk':'none','rd');
+  html+=kpi('Jobs',rows.length+' / '+enriched.length,completeCt+' complete','');
   html+='</div>';
 
   // Leaderboard — admin only
@@ -1235,19 +1283,17 @@ function renderDash(){
   // Main table
   var cols=[
     {k:'jobNumber',l:'Job #'},
+    {k:'invNumber',l:'Invoice'},
     {k:'custName',l:'Customer'},
     {k:'tagType',l:'Tag'},
   ];
-  if(isAdmin) cols.push({k:'repName',l:'Account Mgr'});
+  if(isAdmin) cols.push({k:'repName',l:'Account Manager'});
   cols=cols.concat([
-    {k:'isComplete',l:'Status'},
-    {k:'invNumber',l:'Invoice #'},
-    {k:'issuedDate',l:'Issue Date'},
+    {k:'issuedDate',l:'Invoiced'},
     {k:'subtotal',l:'Subtotal',cls:'n'},
     {k:'rate',l:'Rate',cls:'n'},
     {k:'commission',l:'Commission',cls:'n'},
-    {k:'commStatus',l:'Comm Status'},
-    {k:'daysSince',l:'Days Open',cls:'n'},
+    {k:'commStatus',l:'Status'},
   ]);
 
   html+='<div class="sh"><span class="sh-t">Job Commission Detail</span><div class="sh-l"></div></div>';
@@ -1265,17 +1311,15 @@ function renderDash(){
     var rc=r.isClawback?' class="cb-row"':r.isWarn?' class="warn-row"':'';
     html+='<tr'+rc+'>';
     html+='<td class="nm">'+esc(r.jobNumber)+'</td>';
+    html+='<td>'+(r.invoiced?esc(r.invNumber):'<span style="color:var(--faint)">—</span>')+'</td>';
     html+='<td>'+esc(r.custName)+'</td>';
     html+='<td>'+tBadge(r)+'</td>';
     if(isAdmin) html+='<td>'+esc(r.repName)+'</td>';
-    html+='<td>'+(r.isComplete?'<span class="badge b-complete">Complete</span>':'<span class="badge b-open">Open</span>')+'</td>';
-    html+='<td>'+(r.invoiced?esc(r.invNumber):'<span style="color:var(--faint);font-style:italic;font-size:11px">Not invoiced</span>')+'</td>';
     html+='<td>'+fd(r.issuedDate)+'</td>';
     html+='<td class="n">'+(r.invoiced?fmt(r.subtotal):'—')+'</td>';
-    html+='<td class="n">'+r.rate+'%</td>';
-    html+='<td class="n" style="font-weight:700;color:'+(r.isPaid?'var(--green)':r.isClawback?'var(--red)':r.invoiced?'var(--amber)':'var(--faint)')+'">'+( r.invoiced?fmt(r.commission):'—')+'</td>';
+    html+='<td class="n">'+(r.invoiced?r.rate+'%':'—')+'</td>';
+    html+='<td class="n" style="font-weight:700;color:'+(r.isPaid?'var(--green)':r.isClawback?'var(--red)':r.invoiced?'var(--accent)':'var(--faint)')+'">'+( r.invoiced?fmt(r.commission):'—')+'</td>';
     html+='<td>'+sBadge(r)+'</td>';
-    html+='<td class="n" style="'+(r.isClawback?'color:var(--red);font-weight:700':r.isWarn?'color:var(--amber)':'')+'">'+( r.invoiced?r.daysSince:'—')+'</td>';
     html+='</tr>';
   });
   html+='</tbody></table></div>';
@@ -1796,9 +1840,16 @@ async function loadBuildOpsEmployees(){
   document.getElementById('emp-list').innerHTML = '<div class="empty"><div class="empty-icon"><div class="spin dk"></div></div><p>Loading employees from BuildOps…</p></div>';
 
   try{
-    // Load employees directly through proxy
-    var list = await fetchAllProxy('/v1/employees');
-    console.log('[CMS] Users tab — employees loaded:', list.length);
+    // List endpoint returns 0 — fetch individually from loaded empMap
+    var empIds = Object.keys(empMap);
+    if(!empIds.length){
+      var ids={};(jobs||[]).forEach(function(j){if(j.accountManagerId)ids[j.accountManagerId]=true;});
+      empIds=Object.keys(ids);
+    }
+    var list=[];
+    for(var i=0;i<empIds.length;i++){
+      try{var emp=await callProxy('/v1/employees/'+empIds[i]);if(emp&&emp.id)list.push(emp);}catch(e){}
+    }
     allBuildOpsEmployees = list.filter(function(e){ return e && e.id; });
     allBuildOpsEmployees.sort(function(a,b){
       return ((a.firstName||'')+(a.lastName||'')).localeCompare((b.firstName||'')+(b.lastName||''));
@@ -1903,6 +1954,64 @@ saveUser = async function(){
   }
 };
 
+// ── CUSTOMER TAG MANAGER ─────────────────────────────────
+function getUniqueCustomers(){
+  var names={};
+  (jobs||[]).forEach(function(j){
+    var n=j.billingCustomerName;
+    if(n&&n!=='Unknown'){
+      if(!names[n])names[n]={name:n,jobCount:0,invoiceTotal:0};
+      names[n].jobCount++;
+    }
+  });
+  (enriched||[]).forEach(function(r){
+    if(r.custName&&names[r.custName]&&r.invoiced){
+      names[r.custName].invoiceTotal+=(r.subtotal||0);
+    }
+  });
+  return Object.values(names).sort(function(a,b){return b.invoiceTotal-a.invoiceTotal;});
+}
+
+function renderTagManager(){
+  var custs=getUniqueCustomers();
+  var q=((document.getElementById('tag-search')||{}).value||'').toLowerCase();
+  var filter=((document.getElementById('tag-filter')||{}).value||'all');
+  custs=custs.filter(function(c){
+    if(q&&!c.name.toLowerCase().includes(q))return false;
+    var tag=customerTags[c.name]||'';
+    if(filter==='untagged'&&tag)return false;
+    if(filter==='house'&&tag!=='house')return false;
+    if(filter==='rep'&&tag!=='rep')return false;
+    return true;
+  });
+  document.getElementById('tag-count').textContent=Object.keys(customerTags).length;
+  var el=document.getElementById('tag-list');
+  if(!custs.length){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--faint);font-size:12px">No customers found</div>';return;}
+  el.innerHTML='';
+  custs.forEach(function(c){
+    var tag=customerTags[c.name]||'';
+    var row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--line)';
+    row.innerHTML='<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(c.name)+'</div><div style="font-size:10px;color:var(--faint);margin-top:2px">'+c.jobCount+' jobs &middot; '+fmt(c.invoiceTotal)+' invoiced</div></div>';
+    var sel=document.createElement('select');
+    sel.style.cssText='border:1.5px solid var(--line);border-radius:6px;padding:4px 8px;font-family:inherit;font-size:11px;color:var(--text);background:var(--surface);outline:none;width:110px';
+    sel.innerHTML='<option value=""'+(tag?'':' selected')+'>No Tag</option><option value="house"'+(tag==='house'?' selected':'')+'>House</option><option value="rep"'+(tag==='rep'?' selected':'')+'>Rep</option>';
+    sel.onchange=function(){
+      if(this.value)customerTags[c.name]=this.value;
+      else delete customerTags[c.name];
+      document.getElementById('tag-count').textContent=Object.keys(customerTags).length;
+    };
+    row.appendChild(sel);
+    el.appendChild(row);
+  });
+}
+
+function saveCustomerTags(){
+  localStorage.setItem('cms-customer-tags',JSON.stringify(customerTags));
+  enrich();
+  renderDash();
+  showA('tag-alert','aok','Tags saved. Dashboard updated.');
+}
 </script>
 </body>
 </html>
