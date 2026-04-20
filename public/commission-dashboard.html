@@ -684,7 +684,7 @@ input[type="date"]{color-scheme:dark}
       </div>
       <div class="card-body">
         <div class="alert ainfo show" style="margin-bottom:14px">
-          Assign <strong>House</strong> or <strong>Rep</strong> to each customer. House accounts get the lower commission rate. Changes apply immediately after saving.
+          <strong>BuildOps doesn't expose customer tags via API</strong> — assign them manually here. House accounts get the lower commission rate. Tags are saved to your browser and apply immediately to commission calculations.
         </div>
         <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
           <input class="fsrch" id="tag-search" placeholder="Search customers…" oninput="renderTagManager()" style="flex:1;min-width:200px">
@@ -1165,7 +1165,7 @@ function enrich(){
   var today=new Date();
 
   enriched=(Array.isArray(jobs)?jobs:[]).map(function(job){
-    var repId=job.accountManagerId||'';
+    var repId=job.soldById||job.accountManagerId||'';
     var repName=repId?(empMap[repId]||(repId.length>20?'Rep '+repId.slice(0,6):repId)):'Unassigned';
     var custName=job.billingCustomerName||'Unknown';
     var assignedTag=customerTags[custName]||'';
@@ -1745,10 +1745,12 @@ function kpi(l,v,n,cls){return'<div class="kpi"><div class="kpi-l">'+l+'</div><d
 function tBadge(r){var c=r.tagType==='house'?'b-house':r.tagType==='rep'?'b-rep':'b-none';return'<span class="badge '+c+'">'+esc(r.tagLabel)+'</span>';}
 function jsBadge(status){
   if(!status||status==='Unknown') return '<span style="color:var(--faint)">—</span>';
-  var s=status.toLowerCase();
-  if(s==='complete'||s==='completed') return '<span class="badge b-paid">Complete</span>';
-  if(s==='in progress'||s==='inprogress') return '<span class="badge b-pend">In Progress</span>';
-  if(s==='open') return '<span class="badge b-open">Open</span>';
+  var s=status.toLowerCase().replace(/[\s_-]/g,'');
+  if(s==='complete'||s==='completed'||s==='closed') return '<span class="badge b-paid">Complete</span>';
+  if(s==='inprogress'||s==='active'||s==='dispatched') return '<span class="badge b-pend">In Progress</span>';
+  if(s==='scheduled') return '<span class="badge b-pend">Scheduled</span>';
+  if(s==='open'||s==='new') return '<span class="badge b-open">Open</span>';
+  if(s==='hold'||s==='onhold'||s==='paused') return '<span class="badge b-warn">On Hold</span>';
   if(s==='cancelled'||s==='canceled') return '<span class="badge" style="background:var(--surface2);color:var(--faint);border:1px solid var(--line);text-decoration:line-through">Cancelled</span>';
   return '<span class="badge b-open">'+esc(status)+'</span>';
 }
@@ -1756,10 +1758,12 @@ function jsBadge(status){
 function invBadge(status){
   if(!status) return '<span style="color:var(--faint)">—</span>';
   var s=status.toLowerCase();
+  // BuildOps invoice status enum: draft, exported, void, closed, posted, deleted
   if(s==='closed') return '<span class="badge b-paid">Paid</span>';
-  if(s==='posted'||s==='exported') return '<span class="badge b-pend">Pending</span>';
+  if(s==='posted') return '<span class="badge b-pend">Posted</span>';
+  if(s==='exported') return '<span class="badge b-pend">Exported</span>';
   if(s==='draft') return '<span class="badge b-open">Draft</span>';
-  if(s==='voided'||s==='void') return '<span class="badge" style="background:var(--surface2);color:var(--faint);border:1px solid var(--line);text-decoration:line-through">Voided</span>';
+  if(s==='void'||s==='voided'||s==='deleted') return '<span class="badge" style="background:var(--surface2);color:var(--faint);border:1px solid var(--line);text-decoration:line-through">'+cap(s)+'</span>';
   return '<span class="badge b-open">'+esc(status)+'</span>';
 }
 
