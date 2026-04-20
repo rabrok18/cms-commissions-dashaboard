@@ -452,9 +452,11 @@ input[type="date"]{color-scheme:dark}
           <option value="clawback">Clawback</option>
         </select>
         <select class="fsel" id="f-job" onchange="renderDash()">
-          <option value="all">All Jobs</option>
+          <option value="all">All Job Statuses</option>
           <option value="complete">Complete</option>
+          <option value="inprogress">In Progress</option>
           <option value="open">Open</option>
+          <option value="cancelled">Cancelled</option>
         </select>
         <input class="fsrch" id="f-search" placeholder="Search…" oninput="renderDash()">
         <select class="fsel" id="f-invoiced" onchange="renderDash()">
@@ -928,10 +930,19 @@ async function loadData(){
     if(Object.keys(custMap).length===0){
       var custIds={};
       jobs.forEach(function(j){if(j.billingCustomerId)custIds[j.billingCustomerId]=true;});
-      var cids=Object.keys(custIds).slice(0,50);
+      var cids=Object.keys(custIds);
+      console.log('[CMS] Fetching', cids.length, 'customers individually');
       for(var ci=0;ci<cids.length;ci++){
         showDashLoading('Loading customers… '+(ci+1)+'/'+cids.length);
-        try{var c=await callProxy('/v1/customers/'+cids[ci]);if(c&&c.id)custMap[c.id]=c;}catch(e){}
+        try{
+          var c=await callProxy('/v1/customers/'+cids[ci]);
+          if(c&&c.id){
+            custMap[c.id]=c;
+            if(c.tags&&c.tags.length){
+              console.log('[CMS] Customer tags:', c.name||c.companyName||c.id, '->', c.tags.map(function(t){return t.name||t.label||t;}).join(', '));
+            }
+          }
+        }catch(e){}
       }
     }
     console.log('[CMS] Customers:', Object.keys(custMap).length);
@@ -1157,8 +1168,13 @@ function getFiltered(){
     if(repF!=='all'&&r.repId!==repF)return false;
     if(tagF!=='all'&&r.tagType!==tagF)return false;
     if(stF!=='all'&&r.commStatus!==stF)return false;
-    if(jbF==='complete'&&!r.isComplete)return false;
-    if(jbF==='open'&&r.isComplete)return false;
+    if(jbF!=='all'){
+      var js=(r.jobStatus||'').toLowerCase().replace(/\s/g,'');
+      if(jbF==='complete'&&js!=='complete'&&js!=='completed')return false;
+      if(jbF==='inprogress'&&js!=='inprogress')return false;
+      if(jbF==='open'&&js!=='open')return false;
+      if(jbF==='cancelled'&&js!=='cancelled'&&js!=='canceled')return false;
+    }
     if(cbOnly&&!r.isClawback)return false;
     if(q&&!(r.custName.toLowerCase().includes(q)||r.jobNumber.toLowerCase().includes(q)||r.invNumber.toLowerCase().includes(q)||(SESSION.role==='admin'&&r.repName.toLowerCase().includes(q))))return false;
     return true;
@@ -1282,18 +1298,21 @@ function renderDash(){
 
   // Main table
   var cols=[
-    {k:'jobNumber',l:'Job #'},
-    {k:'invNumber',l:'Invoice'},
+    {k:'jobNumber',l:'Job'},
+    {k:'jobDesc',l:'Description'},
     {k:'custName',l:'Customer'},
     {k:'tagType',l:'Tag'},
   ];
   if(isAdmin) cols.push({k:'repName',l:'Account Manager'});
   cols=cols.concat([
-    {k:'issuedDate',l:'Invoiced'},
+    {k:'jobStatus',l:'Job Status'},
+    {k:'invNumber',l:'Invoice #'},
+    {k:'issuedDate',l:'Invoice Date'},
+    {k:'invStatus',l:'Invoice Status'},
     {k:'subtotal',l:'Subtotal',cls:'n'},
     {k:'rate',l:'Rate',cls:'n'},
     {k:'commission',l:'Commission',cls:'n'},
-    {k:'commStatus',l:'Status'},
+    {k:'commStatus',l:'Payout'},
   ]);
 
   html+='<div class="sh"><span class="sh-t">Job Commission Detail</span><div class="sh-l"></div></div>';
@@ -1311,11 +1330,14 @@ function renderDash(){
     var rc=r.isClawback?' class="cb-row"':r.isWarn?' class="warn-row"':'';
     html+='<tr'+rc+'>';
     html+='<td class="nm">'+esc(r.jobNumber)+'</td>';
-    html+='<td>'+(r.invoiced?esc(r.invNumber):'<span style="color:var(--faint)">—</span>')+'</td>';
+    html+='<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(r.jobDesc||'')+'">'+esc(r.jobDesc||'—')+'</td>';
     html+='<td>'+esc(r.custName)+'</td>';
     html+='<td>'+tBadge(r)+'</td>';
     if(isAdmin) html+='<td>'+esc(r.repName)+'</td>';
+    html+='<td>'+jsBadge(r.jobStatus)+'</td>';
+    html+='<td>'+(r.invoiced?esc(r.invNumber):'<span style="color:var(--faint)">—</span>')+'</td>';
     html+='<td>'+fd(r.issuedDate)+'</td>';
+    html+='<td>'+invBadge(r.invStatus)+'</td>';
     html+='<td class="n">'+(r.invoiced?fmt(r.subtotal):'—')+'</td>';
     html+='<td class="n">'+(r.invoiced?r.rate+'%':'—')+'</td>';
     html+='<td class="n" style="font-weight:700;color:'+(r.isPaid?'var(--green)':r.isClawback?'var(--red)':r.invoiced?'var(--accent)':'var(--faint)')+'">'+( r.invoiced?fmt(r.commission):'—')+'</td>';
@@ -1595,6 +1617,26 @@ function showA(id,cls,msg){var el=document.getElementById(id);el.className='aler
 function showDashLoading(msg){document.getElementById('dash-body').innerHTML='<div class="empty"><div class="spin dk"></div><p>'+esc(msg)+'</p></div>';}
 function kpi(l,v,n,cls){return'<div class="kpi"><div class="kpi-l">'+l+'</div><div class="kpi-v '+cls+'">'+v+'</div><div class="kpi-n">'+n+'</div></div>';}
 function tBadge(r){var c=r.tagType==='house'?'b-house':r.tagType==='rep'?'b-rep':'b-none';return'<span class="badge '+c+'">'+esc(r.tagLabel)+'</span>';}
+function jsBadge(status){
+  if(!status||status==='Unknown') return '<span style="color:var(--faint)">—</span>';
+  var s=status.toLowerCase();
+  if(s==='complete'||s==='completed') return '<span class="badge b-paid">Complete</span>';
+  if(s==='in progress'||s==='inprogress') return '<span class="badge b-pend">In Progress</span>';
+  if(s==='open') return '<span class="badge b-open">Open</span>';
+  if(s==='cancelled'||s==='canceled') return '<span class="badge" style="background:var(--surface2);color:var(--faint);border:1px solid var(--line);text-decoration:line-through">Cancelled</span>';
+  return '<span class="badge b-open">'+esc(status)+'</span>';
+}
+
+function invBadge(status){
+  if(!status) return '<span style="color:var(--faint)">—</span>';
+  var s=status.toLowerCase();
+  if(s==='closed') return '<span class="badge b-paid">Paid</span>';
+  if(s==='posted'||s==='exported') return '<span class="badge b-pend">Pending</span>';
+  if(s==='draft') return '<span class="badge b-open">Draft</span>';
+  if(s==='voided'||s==='void') return '<span class="badge" style="background:var(--surface2);color:var(--faint);border:1px solid var(--line);text-decoration:line-through">Voided</span>';
+  return '<span class="badge b-open">'+esc(status)+'</span>';
+}
+
 function sBadge(r){
   if(!r.invoiced)return'<span class="badge b-none">Not Invoiced</span>';
   if(r.isClawback)return'<span class="badge b-cb">Clawback</span>';
