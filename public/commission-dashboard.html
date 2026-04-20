@@ -872,26 +872,53 @@ async function loadData(){
     showDashLoading('Loading employees…');
     empMap = {};
     try{
-      var ed = await callProxy('/v1/employees?page=0&page_size=200');
-      var empList = ed.items || ed || [];
-      if(!Array.isArray(empList)) empList = [];
+      // Try page_size=100 and limit=100 (BuildOps may use either)
+      var ed = await callProxy('/v1/employees?page=0&page_size=100&limit=100');
+      console.log('[CMS] Employees raw response type:', typeof ed, 'keys:', ed ? Object.keys(ed).slice(0,5).join(',') : 'null');
+      console.log('[CMS] Employees raw (first 500):', JSON.stringify(ed).slice(0,500));
+      var empList = Array.isArray(ed) ? ed : (ed && Array.isArray(ed.items) ? ed.items : []);
+      console.log('[CMS] Employee list length:', empList.length);
+      if(empList.length > 0){
+        console.log('[CMS] First employee fields:', Object.keys(empList[0]).join(', '));
+        console.log('[CMS] First employee:', JSON.stringify(empList[0]).slice(0,300));
+      }
       empList.forEach(function(emp){
         if(emp && emp.id){
-          empMap[emp.id] = [emp.firstName||'', emp.lastName||''].filter(Boolean).join(' ').trim() || emp.name || emp.id;
+          // Try multiple name field combinations
+          var name = [emp.firstName||'', emp.lastName||''].filter(Boolean).join(' ').trim()
+            || emp.name || emp.displayName || emp.fullName || emp.username || '';
+          empMap[emp.id] = name || emp.id;
         }
       });
-    }catch(err){ console.warn('[Commission] Employees failed:', err.message); }
-    console.log('[Commission] Employee map:', Object.keys(empMap).length, 'entries');
+    }catch(err){
+      console.error('[CMS] Employees FAILED:', err.message);
+      // Try fetching all pages if single page failed
+      try{
+        var empPages = await fetchAllProxy('/v1/employees');
+        empPages.forEach(function(emp){
+          if(emp && emp.id){
+            var name = [emp.firstName||'', emp.lastName||''].filter(Boolean).join(' ').trim()
+              || emp.name || emp.displayName || '';
+            empMap[emp.id] = name || emp.id;
+          }
+        });
+        console.log('[CMS] Employees via pagination:', Object.keys(empMap).length);
+      }catch(err2){ console.error('[CMS] Employees pagination also failed:', err2.message); }
+    }
+    console.log('[CMS] Final empMap:', Object.keys(empMap).length, 'entries');
+    if(Object.keys(empMap).length > 0){
+      var sample = Object.entries(empMap).slice(0,3).map(function(e){return e[0].slice(0,8)+'->'+e[1];}).join(', ');
+      console.log('[CMS] empMap sample:', sample);
+    }
 
     showDashLoading('Loading customers…');
     custMap = {};
     try{
-      var cd = await callProxy('/v1/customers?page=0&page_size=500');
-      var custList = cd.items || cd || [];
-      if(!Array.isArray(custList)) custList = [];
-      custList.forEach(function(c){ if(c && c.id) custMap[c.id] = c; });
-    }catch(err){ console.warn('[Commission] Customers failed:', err.message); }
-    console.log('[Commission] Customer map:', Object.keys(custMap).length, 'entries');
+      var custPages = await fetchAllProxy('/v1/customers');
+      console.log('[CMS] Customers loaded:', custPages.length);
+      custPages.forEach(function(c){ if(c && c.id) custMap[c.id] = c; });
+    }catch(err){ console.error('[CMS] Customers failed:', err.message); }
+    console.log('[CMS] Final custMap:', Object.keys(custMap).length, 'entries');
 
     console.log('[Commission] All data loaded — jobs:', jobs.length, 'invoices:', invoices.length);
     buildRepFilter();
@@ -905,15 +932,15 @@ async function loadData(){
 }
 
 async function fetchAllProxy(endpoint){
-  var all=[], page=0;
-  while(true){
+  var all=[], page=0, maxPages=50;
+  while(page < maxPages){
     showDashLoading('Loading '+endpoint.split('/v1/')[1]+' — '+all.length+' records…');
-    var d = await callProxy(endpoint+'?page='+page+'&page_size=100');
-    var items = Array.isArray(d) ? d : (d && d.items ? d.items : []);
-    if(!Array.isArray(items)) items = [];
+    // Send both page_size AND limit — BuildOps uses different params per endpoint
+    var d = await callProxy(endpoint+'?page='+page+'&page_size=100&limit=100');
+    var items = Array.isArray(d) ? d : (d && Array.isArray(d.items) ? d.items : []);
     all = all.concat(items);
     var total = (d && d.totalCount) || (d && d.query && d.query.totalCount) || 0;
-    console.log('[Commission] '+endpoint+' page '+page+': '+items.length+' items, total: '+total+', collected: '+all.length);
+    console.log('[CMS] '+endpoint+' page '+page+': '+items.length+' items, total:'+total+', have:'+all.length);
     if(items.length === 0) break;
     if(total > 0 && all.length >= total) break;
     if(items.length < 100) break;
@@ -1769,18 +1796,10 @@ async function loadBuildOpsEmployees(){
   document.getElementById('emp-list').innerHTML = '<div class="empty"><div class="empty-icon"><div class="spin dk"></div></div><p>Loading employees from BuildOps…</p></div>';
 
   try{
-    // Load from Blobs cache first
-    var d = await fetch(commBase()+'?action=data&key=employees').then(function(r){return r.json();});
-    var raw = d.items||d||[];
-    var list = Array.isArray(raw) ? raw : [];
-    if(!list.length){
-      try{
-        var pd=await callProxy('/v1/employees?page=0&page_size=200');
-        var pr=pd.items||pd||[];
-        list=Array.isArray(pr)?pr:[];
-      }catch(pe){ console.warn('proxy employees failed:',pe.message); }
-    }
-    allBuildOpsEmployees = list.filter(function(e){ return e && e.id && (e.firstName||e.name||e.username); });
+    // Load employees directly through proxy
+    var list = await fetchAllProxy('/v1/employees');
+    console.log('[CMS] Users tab — employees loaded:', list.length);
+    allBuildOpsEmployees = list.filter(function(e){ return e && e.id; });
     allBuildOpsEmployees.sort(function(a,b){
       return ((a.firstName||'')+(a.lastName||'')).localeCompare((b.firstName||'')+(b.lastName||''));
     });
