@@ -461,8 +461,8 @@ input[type="date"]{color-scheme:dark}
         <span class="rct" id="result-ct">—</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
-        <span id="sync-status" style="font-size:11px;color:rgba(255,255,255,.3)">—</span>
-        <button class="btn btn-g bsm" id="sync-btn" onclick="syncNow()" style="display:none">
+        
+        <button class="btn btn-g bsm" id="sync-btn" onclick="loadData()" style="display:none">
           <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
           Sync Now
         </button>
@@ -808,9 +808,6 @@ async function initApp(){
   var syncBtn = document.getElementById('sync-btn');
   if(syncBtn) syncBtn.style.display = isAdmin ? 'inline-flex' : 'none';
 
-  var syncBtn=document.getElementById('sync-btn');
-  if(syncBtn) syncBtn.style.display=isAdmin?'inline-flex':'none';
-
   ['tab-users-btn','tab-payouts-btn','tab-rates-btn','tab-api-btn'].forEach(function(id){
     document.getElementById(id).classList.toggle('hidden', !isAdmin);
   });
@@ -859,104 +856,73 @@ function switchTab(t){
 
 // ── DATA LOAD ─────────────────────────────────────────────
 async function loadData(){
-  showDashLoading('Loading cached data…');
+  showDashLoading('Loading data from BuildOps…');
   try{
-    var ss=await fetch(commBase()+'?action=syncStatus');
-    var sd=await ss.json();
-    updateSyncStatus(sd.syncedAt,sd.errors);
-    if(!sd.syncedAt){
-      document.getElementById('dash-body').innerHTML='<div class="empty"><div class="empty-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></div><p>No data cached yet.</p><p style="font-size:11px;margin-top:4px">Click <strong>Sync Now</strong> to pull data from BuildOps.</p></div>';
-      return;
-    }
-    showDashLoading('Loading from cache…');
-    var results=await Promise.all([
-      fetch(commBase()+'?action=data&key=jobs').then(function(r){return r.json();}),
-      fetch(commBase()+'?action=data&key=invoices').then(function(r){return r.json();}),
-      fetch(commBase()+'?action=data&key=employees').then(function(r){return r.json();}),
-      fetch(commBase()+'?action=data&key=customers').then(function(r){return r.json();}),
-    ]);
-    jobs=results[0].items||[];
-    invoices=results[1].items||[];
-    empMap={};
-    (results[2].items||[]).forEach(function(e){
-      if(e&&e.id) empMap[e.id]=[e.firstName||'',e.lastName||''].filter(Boolean).join(' ').trim()||e.name||e.id;
-    });
-    custMap={};
-    (results[3].items||[]).forEach(function(c){if(c&&c.id) custMap[c.id]=c;});
-    console.log('[Commission] Loaded — jobs:',jobs.length,'invoices:',invoices.length,'employees:',Object.keys(empMap).length,'customers:',Object.keys(custMap).length);
+    // Load all data through proxy in parallel
+    showDashLoading('Loading jobs…');
+    var jobPages = await fetchAllProxy('/v1/jobs');
+    jobs = jobPages;
+    console.log('[Commission] Jobs:', jobs.length);
+
+    showDashLoading('Loading invoices ('+jobs.length+' jobs loaded)…');
+    var invPages = await fetchAllProxy('/v1/invoices');
+    invoices = invPages;
+    console.log('[Commission] Invoices:', invoices.length);
+
+    showDashLoading('Loading employees…');
+    empMap = {};
+    try{
+      var ed = await callProxy('/v1/employees?page=0&page_size=200');
+      var empList = ed.items || ed || [];
+      if(!Array.isArray(empList)) empList = [];
+      empList.forEach(function(emp){
+        if(emp && emp.id){
+          empMap[emp.id] = [emp.firstName||'', emp.lastName||''].filter(Boolean).join(' ').trim() || emp.name || emp.id;
+        }
+      });
+    }catch(err){ console.warn('[Commission] Employees failed:', err.message); }
+    console.log('[Commission] Employee map:', Object.keys(empMap).length, 'entries');
+
+    showDashLoading('Loading customers…');
+    custMap = {};
+    try{
+      var cd = await callProxy('/v1/customers?page=0&page_size=500');
+      var custList = cd.items || cd || [];
+      if(!Array.isArray(custList)) custList = [];
+      custList.forEach(function(c){ if(c && c.id) custMap[c.id] = c; });
+    }catch(err){ console.warn('[Commission] Customers failed:', err.message); }
+    console.log('[Commission] Customer map:', Object.keys(custMap).length, 'entries');
+
+    console.log('[Commission] All data loaded — jobs:', jobs.length, 'invoices:', invoices.length);
     buildRepFilter();
     enrich();
     renderDash();
     renderPayoutPanel();
   }catch(err){
     document.getElementById('dash-body').innerHTML='<div class="empty"><p style="color:var(--red)">Error: '+esc(err.message)+'</p></div>';
-    console.error('[Commission] loadData error:',err);
+    console.error('[Commission] loadData error:', err);
   }
 }
 
-function updateSyncStatus(syncedAt,errors){
-  var el=document.getElementById('sync-status');
-  if(!el) return;
-  if(!syncedAt){el.textContent='Never synced';el.style.color='rgba(255,255,255,.3)';return;}
-  var ago=Math.floor((Date.now()-new Date(syncedAt))/60000);
-  var label=ago<60?ago+'m ago':ago<1440?Math.floor(ago/60)+'h ago':new Date(syncedAt).toLocaleDateString('en-US',{month:'short',day:'numeric'});
-  el.textContent='Synced '+label;
-  el.style.color='rgba(255,255,255,.4)';
-  if(errors&&Object.keys(errors).length){el.textContent+=' ⚠';el.title='Errors: '+JSON.stringify(errors);}
-}
-
-async function syncNow(){
-  var btn=document.getElementById('sync-btn');
-  if(btn){btn.innerHTML='<span class="spin"></span> Syncing…';btn.disabled=true;}
-  showDashLoading('Syncing from BuildOps — this takes 1-2 minutes…');
-  try{
-    var res=await fetch('/.netlify/functions/sync',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','X-Admin-Password':SESSION.password||''}
-    });
-    var text=await res.text();
-    var d={};try{d=JSON.parse(text);}catch(ex){throw new Error('Bad response ('+res.status+'): '+text.slice(0,100));}
-    if(!res.ok) throw new Error(d.error||'Sync failed '+res.status);
-    console.log('[Commission] Sync complete:',d);
-    await loadData();
-  }catch(err){
-    alert('Sync failed: '+err.message);
-    document.getElementById('dash-body').innerHTML='<div class="empty"><p style="color:var(--red)">Sync error: '+esc(err.message)+'</p></div>';
+async function fetchAllProxy(endpoint){
+  var all=[], page=0;
+  while(true){
+    showDashLoading('Loading '+endpoint.split('/v1/')[1]+' — '+all.length+' records…');
+    var d = await callProxy(endpoint+'?page='+page+'&page_size=100');
+    var items = Array.isArray(d) ? d : (d && d.items ? d.items : []);
+    if(!Array.isArray(items)) items = [];
+    all = all.concat(items);
+    var total = (d && d.totalCount) || (d && d.query && d.query.totalCount) || 0;
+    console.log('[Commission] '+endpoint+' page '+page+': '+items.length+' items, total: '+total+', collected: '+all.length);
+    if(items.length === 0) break;
+    if(total > 0 && all.length >= total) break;
+    if(items.length < 100) break;
+    page++;
   }
-  if(btn){btn.innerHTML='<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Sync Now';btn.disabled=false;}
+  return all;
 }
 
-function updateSyncStatus(syncedAt, errors){
-  var el=document.getElementById('sync-status');
-  if(!el) return;
-  if(!syncedAt){ el.textContent='Never synced'; el.style.color='rgba(255,255,255,.3)'; return; }
-  var ago=Math.floor((Date.now()-new Date(syncedAt))/60000);
-  var label=ago<60?ago+'m ago':ago<1440?Math.floor(ago/60)+'h ago':new Date(syncedAt).toLocaleDateString('en-US',{month:'short',day:'numeric'});
-  el.textContent='Synced '+label;
-  el.style.color='rgba(255,255,255,.4)';
-  if(errors&&Object.keys(errors).length){ el.textContent+=' ⚠'; el.title='Errors: '+JSON.stringify(errors); }
-}
 
-async function syncNow(){
-  var btn=document.getElementById('sync-btn');
-  if(btn){btn.innerHTML='<span class="spin"></span> Syncing…';btn.disabled=true;}
-  showDashLoading('Syncing from BuildOps — this takes 1-2 minutes for all records…');
-  try{
-    var res=await fetch('/.netlify/functions/sync',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','X-Admin-Password':SESSION.password||''}
-    });
-    var d=await res.json();
-    if(!res.ok) throw new Error(d.error||'Sync failed');
-    console.log('[Commission] Sync complete:',d);
-    await loadData();
-  }catch(err){
-    alert('Sync failed: '+err.message);
-    showDashLoading(null);
-    document.getElementById('dash-body').innerHTML='<div class="empty"><p style="color:var(--red)">Sync error: '+esc(err.message)+'</p></div>';
-  }
-  if(btn){btn.innerHTML='<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Sync Now';btn.disabled=false;}
-}
 
 async function callProxy(path){
   var base=path.split('?')[0],qp=path.split('?')[1]||'';
