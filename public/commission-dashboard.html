@@ -7,7 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-/* ── RESET ──────────────────────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --ink:#0a0f1a;--ink2:#141c2e;--ink3:#1e2d47;
@@ -26,46 +25,56 @@
 html{font-size:14px;-webkit-font-smoothing:antialiased}
 body{font-family:'Sora',sans-serif;background:var(--surface2);color:var(--text);min-height:100vh}
 
-/* ── LOGIN ──────────────────────────────────────────────── */
+/* ── LOGIN ─────────────────────────────────────────────── */
 #login-screen{
   position:fixed;inset:0;
   background:linear-gradient(135deg,var(--ink) 0%,var(--ink2) 50%,#0f2040 100%);
   display:flex;align-items:center;justify-content:center;z-index:999;padding:20px;
 }
 .login-box{
-  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.08);
   border-radius:20px;padding:44px 40px;width:100%;max-width:400px;
   backdrop-filter:blur(20px);
 }
 .login-logo{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:32px}
-.login-wordmark{display:flex;flex-direction:column;gap:1px}
+.login-wordmark{
+  display:flex;flex-direction:column;gap:1px;
+}
 .login-brand{font-size:15px;font-weight:700;color:#fff;letter-spacing:.5px}
 .login-sub-brand{font-size:10px;font-weight:400;color:rgba(255,255,255,.35);letter-spacing:1.5px;text-transform:uppercase}
 .login-divider{height:32px;width:1px;background:rgba(255,255,255,.1)}
 .login-title{font-size:11px;font-weight:500;color:rgba(255,255,255,.4);text-align:center;letter-spacing:2px;text-transform:uppercase;margin-bottom:28px}
 .login-input{
-  width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
-  border-radius:10px;padding:13px 16px;font-family:inherit;font-size:15px;color:#fff;
-  outline:none;text-align:center;letter-spacing:4px;margin-bottom:12px;transition:all .2s;
+  width:100%;background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:10px;padding:13px 16px;
+  font-family:inherit;font-size:15px;color:#fff;
+  outline:none;text-align:center;letter-spacing:4px;
+  margin-bottom:12px;transition:all .2s;
 }
 .login-input:focus{border-color:rgba(255,255,255,.25);background:rgba(255,255,255,.08)}
 .login-input::placeholder{letter-spacing:2px;font-size:12px;color:rgba(255,255,255,.25)}
 .btn-login{
-  width:100%;background:var(--blue);color:#fff;border:none;border-radius:10px;padding:13px;
-  font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:.3px;
+  width:100%;background:var(--blue);color:#fff;border:none;
+  border-radius:10px;padding:13px;font-family:inherit;
+  font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;
+  letter-spacing:.3px;
 }
 .btn-login:hover{background:var(--blue-d);transform:translateY(-1px)}
 .btn-login:active{transform:translateY(0)}
 .login-err{color:#ff8080;font-size:12px;text-align:center;margin-top:10px;display:none}
 
-/* ── APP SHELL ──────────────────────────────────────────── */
+/* ── APP SHELL ─────────────────────────────────────────── */
 #app{display:none;flex-direction:column;min-height:100vh}
 #app.show{display:flex}
 
 /* TOPBAR */
 .topbar{
-  background:var(--ink);height:56px;display:flex;align-items:center;padding:0 24px;
-  position:sticky;top:0;z-index:50;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.04);
+  background:var(--ink);height:56px;
+  display:flex;align-items:center;padding:0 24px;
+  position:sticky;top:0;z-index:50;flex-shrink:0;
+  border-bottom:1px solid rgba(255,255,255,.04);
 }
 .topbar-logo{display:flex;align-items:center;gap:10px;margin-right:auto}
 .topbar-name{font-size:12px;font-weight:600;color:#fff;letter-spacing:.3px}
@@ -79,7 +88,8 @@ body{font-family:'Sora',sans-serif;background:var(--surface2);color:var(--text);
 .tb-btn{
   background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);
   color:rgba(255,255,255,.45);border-radius:7px;padding:5px 12px;
-  font-family:inherit;font-size:11px;font-weight:500;cursor:pointer;transition:all .15s;
+  font-family:inherit;font-size:11px;font-weight:500;cursor:pointer;
+  transition:all .15s;
 }
 .tb-btn:hover{background:rgba(255,255,255,.1);color:rgba(255,255,255,.8)}
 .tb-period{
@@ -87,8 +97,6 @@ body{font-family:'Sora',sans-serif;background:var(--surface2);color:var(--text);
   color:rgba(255,255,255,.6);border-radius:7px;padding:5px 10px;
   font-family:inherit;font-size:11px;cursor:pointer;outline:none;
 }
-.tb-period option{background:var(--ink);color:#fff}
-.tb-sync-status{font-size:10px;color:rgba(255,255,255,.25);margin-right:4px}
 
 /* SUBNAV */
 .subnav{
@@ -97,9 +105,11 @@ body{font-family:'Sora',sans-serif;background:var(--surface2);color:var(--text);
 }
 .subnav::-webkit-scrollbar{display:none}
 .stab{
-  padding:12px 16px;font-size:11.5px;font-weight:500;color:rgba(255,255,255,.35);
-  cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;
-  user-select:none;display:flex;align-items:center;gap:6px;white-space:nowrap;flex-shrink:0;letter-spacing:.1px;
+  padding:12px 16px;font-size:11.5px;font-weight:500;
+  color:rgba(255,255,255,.35);cursor:pointer;
+  border-bottom:2px solid transparent;transition:all .15s;
+  user-select:none;display:flex;align-items:center;gap:6px;
+  white-space:nowrap;flex-shrink:0;letter-spacing:.1px;
 }
 .stab:hover{color:rgba(255,255,255,.65)}
 .stab.on{color:#fff;border-bottom-color:var(--blue)}
@@ -109,16 +119,18 @@ body{font-family:'Sora',sans-serif;background:var(--surface2);color:var(--text);
 
 /* CONTENT */
 .tab{display:none;padding:24px;max-width:1440px;width:100%;margin:0 auto}
-.tab.on{display:block;animation:fadeUp .2s ease both}
+.tab.on{display:block}
 
 /* CARDS */
 .card{
-  background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
-  overflow:hidden;margin-bottom:16px;box-shadow:var(--sh);
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r);overflow:hidden;margin-bottom:16px;
+  box-shadow:var(--sh);
 }
 .card-hdr{
   display:flex;align-items:center;justify-content:space-between;
-  padding:12px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap;gap:8px;background:var(--surface);
+  padding:12px 18px;border-bottom:1px solid var(--line);
+  flex-wrap:wrap;gap:8px;background:var(--surface);
 }
 .card-title{font-size:12px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px}
 .cico{
@@ -126,14 +138,18 @@ body{font-family:'Sora',sans-serif;background:var(--surface2);color:var(--text);
   display:flex;align-items:center;justify-content:center;flex-shrink:0;
 }
 .card-body{padding:16px 18px}
-.cnt{background:var(--blue-s);color:var(--blue);border-radius:99px;padding:2px 8px;font-size:10px;font-weight:600}
+.cnt{
+  background:var(--blue-s);color:var(--blue);
+  border-radius:99px;padding:2px 8px;font-size:10px;font-weight:600;
+}
 .cnt.red{background:var(--red-s);color:var(--red)}
 
 /* KPI GRID */
 .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:20px}
 .kpi{
-  background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
-  padding:16px 18px;box-shadow:var(--sh);transition:box-shadow .15s;
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r);padding:16px 18px;box-shadow:var(--sh);
+  transition:box-shadow .15s;
 }
 .kpi:hover{box-shadow:var(--sh2)}
 .kpi-l{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:1.2px;color:var(--faint);margin-bottom:6px}
@@ -144,8 +160,9 @@ body{font-family:'Sora',sans-serif;background:var(--surface2);color:var(--text);
 /* LEADERBOARD */
 .lbg{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:20px}
 .lbc{
-  background:var(--surface);border:1.5px solid var(--line);border-radius:var(--r);
-  padding:16px 18px;cursor:pointer;transition:all .15s;box-shadow:var(--sh);
+  background:var(--surface);border:1.5px solid var(--line);
+  border-radius:var(--r);padding:16px 18px;cursor:pointer;
+  transition:all .15s;box-shadow:var(--sh);
 }
 .lbc:hover{border-color:var(--line2);box-shadow:var(--sh2);transform:translateY(-1px)}
 .lbc.on{border-color:var(--blue);background:var(--blue-s);box-shadow:0 0 0 3px rgba(21,88,214,.08)}
@@ -157,12 +174,17 @@ body{font-family:'Sora',sans-serif;background:var(--surface2);color:var(--text);
 .lbs-v{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;color:var(--text)}
 .lbs-v.g{color:var(--green)}.lbs-v.r{color:var(--red)}.lbs-v.a{color:var(--amber)}
 
-/* REP HERO */
+/* SUMMARY HERO (rep view) */
 .rep-hero{
-  background:var(--ink);border-radius:var(--r);padding:28px 32px;margin-bottom:20px;
-  display:grid;grid-template-columns:repeat(3,1fr);gap:1px;overflow:hidden;position:relative;
+  background:var(--ink);border-radius:var(--r);padding:28px 32px;
+  margin-bottom:20px;display:grid;grid-template-columns:repeat(3,1fr);
+  gap:1px;overflow:hidden;position:relative;
 }
-.rep-hero::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(21,88,214,.15) 0%,transparent 60%);pointer-events:none}
+.rep-hero::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(21,88,214,.15) 0%,transparent 60%);
+  pointer-events:none;
+}
 .rh-cell{padding:20px 24px;position:relative}
 .rh-cell+.rh-cell{border-left:1px solid rgba(255,255,255,.06)}
 .rh-l{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.3);margin-bottom:8px}
@@ -170,7 +192,27 @@ body{font-family:'Sora',sans-serif;background:var(--surface2);color:var(--text);
 .rh-v.gr{color:#4ade80}.rh-v.am{color:#fbbf24}.rh-v.rd{color:#f87171}
 .rh-n{font-size:11px;color:rgba(255,255,255,.3);margin-top:6px}
 
+/* CLAWBACK BANNER */
+.cb-banner{
+  background:linear-gradient(135deg,var(--red-s),#fff8f8);
+  border:1px solid var(--red-b);border-radius:var(--r);
+  padding:14px 18px;margin-bottom:16px;
+  display:none;align-items:center;gap:14px;
+}
+.cb-banner.show{display:flex}
+.cb-ico{
+  width:36px;height:36px;background:var(--red);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.cb-title{font-size:13px;font-weight:600;color:var(--red);margin-bottom:2px}
+.cb-detail{font-size:12px;color:#a83030}
+
 /* TABLE */
+.tbl-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);margin-bottom:16px}
+.tbl-filters{
+  display:flex;align-items:center;gap:8px;padding:12px 16px;
+  border-bottom:1px solid var(--line);flex-wrap:wrap;background:var(--surface);
+}
 .twrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse}
 th{
@@ -180,13 +222,21 @@ th{
   white-space:nowrap;cursor:pointer;user-select:none;transition:color .1s;
 }
 th:hover{color:var(--muted)}
-td{padding:11px 14px;border-bottom:1px solid var(--line);font-size:12px;color:var(--body);white-space:nowrap;vertical-align:middle}
+td{
+  padding:11px 14px;border-bottom:1px solid var(--line);
+  font-size:12px;color:var(--body);white-space:nowrap;vertical-align:middle;
+}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:var(--surface2)}
 tr.cb-row td{background:#fff5f5}
 tr.warn-row td{background:#fffbf0}
 .nm{font-weight:600;color:var(--text)}
 .n{font-family:'JetBrains Mono',monospace;text-align:right;font-weight:500}
+.tbl-footer{
+  display:flex;gap:16px;justify-content:flex-end;align-items:center;
+  padding:10px 16px;border-top:1px solid var(--line);
+  background:var(--surface2);font-size:11px;color:var(--muted);flex-wrap:wrap;
+}
 
 /* BADGES */
 .badge{display:inline-flex;align-items:center;border-radius:5px;padding:3px 8px;font-size:10px;font-weight:600;white-space:nowrap;letter-spacing:.1px}
@@ -298,17 +348,30 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
 .ep-d{font-size:10px;color:var(--faint);margin-top:2px}
 .res-box{background:var(--ink);border-radius:var(--r2);padding:16px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#a8d8a0;max-height:460px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;line-height:1.7}
 
+/* PAYOUT PANEL */
+.rep-payout-row{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r2);
+  padding:14px 18px;margin-bottom:8px;display:flex;align-items:center;
+  gap:14px;flex-wrap:wrap;transition:box-shadow .15s;
+}
+.rep-payout-row:hover{box-shadow:var(--sh2)}
+.rep-avatar{width:38px;height:38px;border-radius:50%;background:var(--blue-s);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--blue);flex-shrink:0;border:1.5px solid var(--blue-b)}
+
 /* RESPONSIVE */
 @media(max-width:1100px){.kpis{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:800px){.kpis{grid-template-columns:repeat(2,1fr)}.fgrid{grid-template-columns:1fr}.rate-grid{grid-template-columns:repeat(2,1fr)}.rep-hero{grid-template-columns:1fr}}
 @media(max-width:600px){.tab{padding:14px}.kpis{grid-template-columns:repeat(2,1fr)}.topbar-section{display:none}}
 
+/* ANIMATIONS */
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.tab.on{animation:fadeUp .2s ease both}
+input[type="date"]{color-scheme:dark}
+#custom-date-wrap input{background:#1e2d47!important;color:#fff!important;border:1px solid rgba(255,255,255,.2)!important;font-family:inherit}
 </style>
 </head>
 <body>
 
-<!-- ═══ LOGIN ═══ -->
+<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-box">
     <div class="login-logo">
@@ -321,12 +384,12 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
     </div>
     <div class="login-title">Commission Dashboard</div>
     <input class="login-input" id="login-pw" type="password" placeholder="Enter access code" autocomplete="current-password">
-    <button class="btn-login" id="login-btn" onclick="doLogin()">Sign In</button>
+    <button class="btn-login" onclick="doLogin()">Sign In</button>
     <p class="login-err" id="login-err">Incorrect code — try again</p>
   </div>
 </div>
 
-<!-- ═══ APP ═══ -->
+<!-- APP -->
 <div id="app">
 
   <!-- TOPBAR -->
@@ -338,19 +401,23 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
       <span class="topbar-section">Commission</span>
     </div>
     <div class="topbar-right">
-      <span class="tb-sync-status" id="sync-status"></span>
       <span class="tb-user" id="hdr-user"></span>
       <span class="tb-role" id="hdr-role"></span>
-      <select class="tb-period" id="period-sel" onchange="handlePeriodChange()">
+      <select class="tb-period" id="period-sel" onchange="onPeriodChange()">
         <option value="mtd">Month to Date</option>
         <option value="qtd">Quarter to Date</option>
         <option value="ytd" selected>Year to Date</option>
         <option value="all">All Time</option>
-        <option value="custom">Custom Range</option>
+        <option value="lm">Last Month</option>
+        <option value="lq">Last Quarter</option>
+        <option value="ly">Last Year</option>
+        <option value="custom">Custom Range…</option>
       </select>
-      <input type="date" class="tb-period" id="date-from" style="display:none;width:125px" onchange="renderDash()">
-      <span id="date-dash" style="display:none;color:rgba(255,255,255,.3);font-size:11px">to</span>
-      <input type="date" class="tb-period" id="date-to" style="display:none;width:125px" onchange="renderDash()">
+      <div id="custom-date-wrap" style="display:none;align-items:center;gap:6px">
+        <input type="date" id="date-from" onchange="renderDash()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);border-radius:7px;padding:4px 8px;font-size:11px;outline:none">
+        <span style="color:rgba(255,255,255,.3);font-size:11px">to</span>
+        <input type="date" id="date-to" onchange="renderDash()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);border-radius:7px;padding:4px 8px;font-size:11px;outline:none">
+      </div>
       <button class="tb-btn" onclick="exportCSV()">Export CSV</button>
       <button class="tb-btn" onclick="doLogout()">Sign Out</button>
     </div>
@@ -359,14 +426,13 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
   <!-- SUBNAV -->
   <nav class="subnav" id="main-nav">
     <div class="stab on" data-tab="dash" onclick="switchTab('dash')"><div class="dot"></div>Dashboard</div>
-    <div class="stab hidden" data-tab="users" id="tab-users-btn" onclick="switchTab('users')"><div class="dot"></div>Users</div>
-    <div class="stab hidden" data-tab="payouts" id="tab-payouts-btn" onclick="switchTab('payouts')"><div class="dot"></div>Payouts</div>
-    <div class="stab hidden" data-tab="rates" id="tab-rates-btn" onclick="switchTab('rates')"><div class="dot"></div>Rates &amp; Config</div>
-    <div class="stab hidden" data-tab="api" id="tab-api-btn" onclick="switchTab('api')"><div class="dot"></div>API Tester</div>
-    <div class="stab hidden" data-tab="disputes" id="tab-disputes-btn" onclick="switchTab('disputes')"><div class="dot"></div>Disputes <span class="cnt red" id="dispute-badge" style="display:none">0</span></div>
+    <div class="stab hidden" id="tab-users-btn" data-tab="users" onclick="switchTab('users')"><div class="dot"></div>Users</div>
+    <div class="stab hidden" id="tab-payouts-btn" data-tab="payouts" onclick="switchTab('payouts')"><div class="dot"></div>Payouts</div>
+    <div class="stab hidden" id="tab-rates-btn" data-tab="rates" onclick="switchTab('rates')"><div class="dot"></div>Rates &amp; Config</div>
+    <div class="stab hidden" id="tab-api-btn" data-tab="api" onclick="switchTab('api')"><div class="dot"></div>API Tester</div>
   </nav>
 
-  <!-- ═══ DASHBOARD TAB ═══ -->
+  <!-- DASHBOARD TAB -->
   <div class="tab on" id="tab-dash">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
       <div class="filters" style="margin-bottom:0;flex:1">
@@ -394,30 +460,37 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
         <div class="chip" id="cb-chip" onclick="toggleCB()">⚠ Clawbacks Only</div>
         <span class="rct" id="result-ct">—</span>
       </div>
-      <div style="display:flex;gap:6px">
-        <button class="btn btn-o bsm" onclick="triggerSync()" id="sync-btn" title="Pull fresh data from BuildOps and update cache">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span id="sync-status" style="font-size:11px;color:rgba(255,255,255,.3)">—</span>
+        <button class="btn btn-g bsm" id="sync-btn" onclick="syncNow()" style="display:none">
           <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-          Sync BuildOps
+          Sync Now
         </button>
-        <button class="btn btn-g bsm" onclick="loadData()" id="refresh-btn">
-          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          Load Data
+        <button class="btn btn-o bsm" onclick="loadData()" style="font-size:11px;padding:5px 10px">
+          <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Reload
         </button>
       </div>
     </div>
     <div id="dash-body">
-      <div class="empty"><div class="empty-icon"><div class="spin dk"></div></div><p>Loading commission data…</p></div>
+      <div class="empty">
+        <div class="empty-icon"><div class="spin dk"></div></div>
+        <p>Loading commission data…</p>
+      </div>
     </div>
   </div>
 
-  <!-- ═══ USERS TAB ═══ -->
+  <!-- USERS TAB -->
   <div class="tab" id="tab-users">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+
+      <!-- LEFT: BuildOps employees -->
       <div class="card">
         <div class="card-hdr">
           <div class="card-title">
             <div class="cico"><svg width="12" height="12" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
-            BuildOps Employees <span class="cnt" id="emp-count">0</span>
+            BuildOps Employees
+            <span class="cnt" id="emp-count">0</span>
           </div>
           <button class="btn btn-o bsm" onclick="loadBuildOpsEmployees()">
             <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
@@ -429,32 +502,42 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
         </div>
         <div id="emp-list" style="max-height:480px;overflow-y:auto">
           <div class="empty">
-            <div class="empty-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
+            <div class="empty-icon">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            </div>
             <p>Click "Sync from BuildOps" to load employees</p>
           </div>
         </div>
       </div>
+
+      <!-- RIGHT: Commission users -->
       <div class="card">
         <div class="card-hdr">
           <div class="card-title">
             <div class="cico"><svg width="12" height="12" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></div>
-            Commission Access <span class="cnt" id="user-count">0</span>
+            Commission Access
+            <span class="cnt" id="user-count">0</span>
           </div>
         </div>
         <div id="user-list" style="max-height:540px;overflow-y:auto">
           <div class="empty">
-            <div class="empty-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+            <div class="empty-icon">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            </div>
             <p>Select an employee from the left to grant access</p>
           </div>
         </div>
         <div style="padding:12px 16px;border-top:1px solid var(--line);background:var(--surface2)">
-          <div style="font-size:11px;color:var(--faint);line-height:1.6">Each rep gets their own password and sees only their own jobs and commissions.</div>
+          <div style="font-size:11px;color:var(--faint);line-height:1.6">
+            Select an employee on the left to add them. Each rep gets their own password and sees only their own jobs and commissions.
+          </div>
         </div>
       </div>
+
     </div>
   </div>
 
-  <!-- ═══ PAYOUTS TAB ═══ -->
+  <!-- PAYOUTS TAB -->
   <div class="tab" id="tab-payouts">
     <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;align-items:start">
       <div>
@@ -470,14 +553,15 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
             </div>
           </div>
           <div id="payout-panel">
-            <div class="empty"><div class="empty-icon"><div class="spin dk"></div></div><p>Load data first to see payout totals</p></div>
+            <div class="empty"><div class="empty-icon"><div class="spin dk"></div></div><p>Load live data first to see payout totals</p></div>
           </div>
         </div>
         <div class="card">
           <div class="card-hdr">
             <div class="card-title">
               <div class="cico"><svg width="12" height="12" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
-              Payout History <span class="cnt" id="payout-history-count">0</span>
+              Payout History
+              <span class="cnt" id="payout-history-count">0</span>
             </div>
             <button class="btn btn-g bsm" onclick="exportPayoutCSV()">
               <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -485,13 +569,15 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
             </button>
           </div>
           <div class="twrap">
-            <table><thead><tr>
-              <th>Month</th><th>Rep</th><th class="n">Invoices</th>
-              <th class="n">Commission Paid</th><th>Paid Date</th><th>Note</th><th></th>
-            </tr></thead>
-            <tbody id="payout-history-body">
-              <tr><td colspan="7" style="text-align:center;color:var(--faint);padding:28px">No payouts recorded yet</td></tr>
-            </tbody></table>
+            <table id="payout-history-tbl">
+              <thead><tr>
+                <th>Month</th><th>Rep</th><th class="n">Invoices</th>
+                <th class="n">Commission Paid</th><th>Paid Date</th><th>Note</th><th></th>
+              </tr></thead>
+              <tbody id="payout-history-body">
+                <tr><td colspan="7" style="text-align:center;color:var(--faint);padding:28px">No payouts recorded yet</td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -499,28 +585,21 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
         <div class="card-hdr"><div class="card-title">How payouts work</div></div>
         <div class="card-body" style="font-size:12.5px;color:var(--body);line-height:1.9">
           <ol style="padding-left:18px;display:flex;flex-direction:column;gap:12px">
-            <li>Commission is calculated <strong>when an invoice is issued</strong></li>
-            <li>Admin clicks <strong>Submit for Review</strong> to send to accounting</li>
-            <li>Accounting reviews and clicks <strong>Approve</strong> or <strong>Reject</strong></li>
-            <li>Sales rep can <strong>Acknowledge</strong> their commission from their dashboard</li>
-            <li>Once approved, admin clicks <strong>Record Payout</strong></li>
+            <li>Commission is earned <strong>when an invoice is issued</strong></li>
+            <li>At month end, review each rep's total and click <strong>Record Payout</strong></li>
+            <li>Lump sum is saved with date and invoice list</li>
             <li>Invoices unpaid <strong>90+ days</strong> are flagged for clawback</li>
+            <li>Void a payout if recorded in error</li>
           </ol>
-          <div style="margin-top:16px;padding:12px 14px;background:var(--blue-s);border-radius:var(--r2);font-size:11.5px;color:var(--blue);border:1px solid var(--blue-b)">
-            <strong>Workflow:</strong> Submit → Approve → Acknowledge → Pay
-          </div>
-          <div style="margin-top:8px;padding:12px 14px;background:var(--amber-s);border-radius:var(--r2);font-size:11.5px;color:#92400e;border:1px solid var(--amber-b)">
+          <div style="margin-top:16px;padding:12px 14px;background:var(--amber-s);border-radius:var(--r2);font-size:11.5px;color:#92400e;border:1px solid var(--amber-b)">
             <strong>Clawback:</strong> When a payout includes invoices later flagged for clawback, the at-risk amount is shown in history.
-          </div>
-          <div style="margin-top:8px;padding:12px 14px;background:var(--red-s);border-radius:var(--r2);font-size:11.5px;color:var(--red);border:1px solid var(--red-b)">
-            <strong>Disputes:</strong> Reps can flag issues from their dashboard. Check the Disputes tab for open items.
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ═══ RATES TAB ═══ -->
+  <!-- RATES TAB -->
   <div class="tab" id="tab-rates">
     <div class="card">
       <div class="card-hdr">
@@ -536,7 +615,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
           <div class="rate-card">
             <label><span class="badge b-house" style="margin-bottom:6px;display:inline-flex">House Account</span></label>
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-              <input type="number" id="rate-house" value="3" min="0" max="100" step="0.5" style="width:80px;margin-bottom:0" oninput="updateCalc()">
+              <input type="number" id="rate-house" value="3" min="0" max="100" step="0.5" style="width:80px;margin-bottom:0">
               <span style="color:var(--muted);font-size:16px;font-weight:500">%</span>
             </div>
             <div class="hint">Tag contains "house"</div>
@@ -544,7 +623,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
           <div class="rate-card">
             <label><span class="badge b-rep" style="margin-bottom:6px;display:inline-flex">Rep Account</span></label>
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-              <input type="number" id="rate-rep" value="5" min="0" max="100" step="0.5" style="width:80px;margin-bottom:0" oninput="updateCalc()">
+              <input type="number" id="rate-rep" value="5" min="0" max="100" step="0.5" style="width:80px;margin-bottom:0">
               <span style="color:var(--muted);font-size:16px;font-weight:500">%</span>
             </div>
             <div class="hint">Other tagged customer</div>
@@ -552,7 +631,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
           <div class="rate-card">
             <label><span class="badge b-none" style="margin-bottom:6px;display:inline-flex">No Tag</span></label>
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-              <input type="number" id="rate-none" value="5" min="0" max="100" step="0.5" style="width:80px;margin-bottom:0" oninput="updateCalc()">
+              <input type="number" id="rate-none" value="5" min="0" max="100" step="0.5" style="width:80px;margin-bottom:0">
               <span style="color:var(--muted);font-size:16px;font-weight:500">%</span>
             </div>
             <div class="hint">No tag assigned</div>
@@ -601,7 +680,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
     </div>
   </div>
 
-  <!-- ═══ API TESTER TAB ═══ -->
+  <!-- API TESTER TAB -->
   <div class="tab" id="tab-api">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div>
@@ -614,7 +693,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
           <div class="card-body">
             <div class="frow"><label>Path</label><input type="text" id="custom-ep" placeholder="/v1/jobs?page=0&page_size=1"></div>
             <button class="btn btn-n bsm" onclick="runCustom()">
-              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg> Run
+              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Run
             </button>
           </div>
         </div>
@@ -626,29 +706,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
     </div>
   </div>
 
-  <!-- ═══ DISPUTES TAB ═══ -->
-  <div class="tab" id="tab-disputes">
-    <div class="card">
-      <div class="card-hdr">
-        <div class="card-title">
-          <div class="cico" style="background:var(--red)"><svg width="12" height="12" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
-          Open Disputes <span class="cnt red" id="dispute-count">0</span>
-        </div>
-      </div>
-      <div class="twrap">
-        <table><thead><tr>
-          <th>Date</th><th>Rep</th><th>Job #</th><th>Invoice #</th><th>Issue</th><th>Status</th><th></th>
-        </tr></thead>
-        <tbody id="disputes-body">
-          <tr><td colspan="7" style="text-align:center;color:var(--faint);padding:28px">No disputes</td></tr>
-        </tbody></table>
-      </div>
-    </div>
-  </div>
-
 </div><!-- end #app -->
 
-<!-- ═══ USER MODAL ═══ -->
+<!-- USER MODAL -->
 <div class="modal-overlay" id="user-modal">
   <div class="modal">
     <div class="modal-hdr">
@@ -658,6 +718,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
     <div class="modal-body">
       <input type="hidden" id="modal-user-id">
       <input type="hidden" id="modal-empid">
+
+      <!-- Employee preview -->
       <div id="modal-emp-preview" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface2);border-radius:var(--r2);margin-bottom:16px;border:1px solid var(--line)">
         <div id="modal-avatar" style="width:40px;height:40px;border-radius:50%;background:var(--blue-s);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--blue);flex-shrink:0;border:1.5px solid var(--blue-b)">—</div>
         <div>
@@ -665,6 +727,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
           <div id="modal-emp-id" style="font-size:10.5px;color:var(--faint);font-family:monospace;margin-top:2px">—</div>
         </div>
       </div>
+
       <div class="frow">
         <label>Login Password</label>
         <input type="password" id="modal-password" placeholder="Create a password" autocomplete="new-password">
@@ -675,7 +738,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
     <div class="modal-footer">
       <button class="btn btn-o bsm" onclick="closeUserModal()">Cancel</button>
       <button class="btn btn-p bsm" onclick="saveUser()">
-        <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Grant Access
+        <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Grant Access
       </button>
     </div>
   </div>
@@ -683,914 +747,855 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
 
 
 <script>
-// ══════════════════════════════════════════════════════════
-//  CMS COMMISSION DASHBOARD — CLIENT
-// ══════════════════════════════════════════════════════════
-
 // ── CONFIG ────────────────────────────────────────────────
 var SITE_URL = localStorage.getItem('cms-site-url') || '';
 var SESSION  = null;
-var RATES    = { house: 3, rep: 5, none: 5, cbDays: 90 };
-var jobs = [], invoices = [], empMap = {}, custMap = {};
-var enriched = [];
-var allPayouts = [];
-var cbOnly = false, sortCol = 'issuedDate', sortDir = 'desc';
+var RATES    = {house:3,rep:5,none:5,cbDays:90};
+var jobs=[], invoices=[], empMap={}, custMap={};
+var enriched=[];
+var cbOnly=false, sortCol='issuedDate', sortDir='desc';
 
-function proxyBase() { return SITE_URL || window.location.origin; }
-function commBase()  { return proxyBase() + '/.netlify/functions/commission'; }
-function syncBase()  { return proxyBase() + '/.netlify/functions/sync'; }
-
-// ── UTILS ─────────────────────────────────────────────────
-function fmt(n) { return '$' + Math.round(n || 0).toLocaleString('en-US'); }
-function empName(e) {
-  // BuildOps may use different field names — check them all
-  var first = e.firstName || e.first_name || '';
-  var last = e.lastName || e.last_name || '';
-  var full = [first, last].filter(Boolean).join(' ');
-  return full || e.name || e.displayName || e.fullName || e.id;
-}
-function fd(d) { if (!d || !(d instanceof Date) || isNaN(d)) return '—'; return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
-function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
-function csvQ(s) { return '"' + String(s || '').replace(/"/g, '""') + '"'; }
-function cap(s) { return s.replace(/\b\w/g, function(c) { return c.toUpperCase(); }); }
-function showA(id, cls, msg) { var el = document.getElementById(id); el.className = 'alert ' + cls + ' show'; el.textContent = msg; }
-function showDashLoading(msg) { document.getElementById('dash-body').innerHTML = '<div class="empty"><div class="empty-icon"><div class="spin dk"></div></div><p>' + esc(msg) + '</p></div>'; }
-function kpi(l, v, n, cls) { return '<div class="kpi"><div class="kpi-l">' + l + '</div><div class="kpi-v ' + cls + '">' + v + '</div><div class="kpi-n">' + n + '</div></div>'; }
-function tBadge(r) { var c = r.tagType === 'house' ? 'b-house' : r.tagType === 'rep' ? 'b-rep' : 'b-none'; return '<span class="badge ' + c + '">' + esc(r.tagLabel) + '</span>'; }
-function sBadge(r) {
-  if (!r.invoiced) return '<span class="badge b-none">Not Invoiced</span>';
-  if (r.isClawback) return '<span class="badge b-cb">Clawback</span>';
-  if (r.isWarn) return '<span class="badge b-warn">Warning</span>';
-  if (r.isPaid) return '<span class="badge b-paid">Paid</span>';
-  return '<span class="badge b-pend">Pending</span>';
-}
-function showModalAlert(cls, msg) {
-  var el = document.getElementById('modal-alert');
-  el.className = 'alert ' + cls + ' show';
-  el.textContent = msg;
-}
+function proxyBase(){ return (SITE_URL||window.location.origin); }
+function commBase(){  return (SITE_URL||window.location.origin)+'/.netlify/functions/commission'; }
 
 // ── LOGIN ─────────────────────────────────────────────────
-document.getElementById('login-pw').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+document.getElementById('login-pw').addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
 
-async function doLogin() {
+
+async function doLogin(){
   var pw = document.getElementById('login-pw').value.trim();
-  if (!pw) return;
-  var btn = document.getElementById('login-btn');
-  btn.textContent = 'Signing in…'; btn.disabled = true;
-  document.getElementById('login-err').style.display = 'none';
-  try {
-    var res = await fetch(commBase() + '?action=login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'login', password: pw })
+  if(!pw) return;
+  var btn = document.querySelector('.btn-login');
+  btn.textContent='Signing in…'; btn.disabled=true;
+  document.getElementById('login-err').style.display='none';
+  try{
+    var res = await fetch(commBase()+'?action=login', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({action:'login', password:pw})
     });
     var d = await res.json();
-    if (!res.ok) throw new Error(d.error || 'Invalid password');
+    if(!res.ok) throw new Error(d.error||'Invalid password');
     SESSION = d;
     SESSION.password = pw;
-    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('login-screen').style.display='none';
     document.getElementById('app').classList.add('show');
     initApp();
-  } catch (err) {
+  }catch(err){
     document.getElementById('login-err').textContent = err.message;
-    document.getElementById('login-err').style.display = 'block';
+    document.getElementById('login-err').style.display='block';
   }
-  btn.textContent = 'Sign In'; btn.disabled = false;
+  btn.textContent='Sign In'; btn.disabled=false;
 }
 
-function doLogout() {
-  SESSION = null; jobs = []; invoices = []; enriched = []; allPayouts = [];
-  document.getElementById('login-screen').style.display = 'flex';
+function doLogout(){
+  SESSION=null; jobs=[]; invoices=[]; enriched=[];
+  document.getElementById('login-screen').style.display='flex';
   document.getElementById('app').classList.remove('show');
-  document.getElementById('login-pw').value = '';
-}
-
-// ── TABS (FIXED — uses .stab not .ntab) ──────────────────
-function switchTab(t) {
-  document.querySelectorAll('.stab').forEach(function(el) { el.classList.toggle('on', el.dataset.tab === t); });
-  document.querySelectorAll('.tab').forEach(function(el) { el.classList.toggle('on', el.id === 'tab-' + t); });
+  document.getElementById('login-pw').value='';
 }
 
 // ── INIT ──────────────────────────────────────────────────
-async function initApp() {
-  // Header
+async function initApp(){
+  // Set header
   document.getElementById('hdr-user').textContent = SESSION.name;
-  var roleEl = document.getElementById('hdr-role');
-  roleEl.textContent = SESSION.role === 'admin' ? 'Admin' : 'Rep';
-  roleEl.className = 'tb-role ' + (SESSION.role === 'admin' ? 'tb-admin' : 'tb-rep');
-
-  var isAdmin = SESSION.role === 'admin';
+  document.getElementById('hdr-role').textContent = SESSION.role==='admin'?'Admin':'Rep';
+  document.getElementById('hdr-role').className = 'hdr-role '+(SESSION.role==='admin'?'role-admin':'role-rep');
 
   // Show/hide admin tabs
-  ['tab-users-btn', 'tab-payouts-btn', 'tab-rates-btn', 'tab-api-btn', 'tab-disputes-btn'].forEach(function(id) {
+  var isAdmin = SESSION.role==='admin';
+  // Show sync button for admin
+  var syncBtn = document.getElementById('sync-btn');
+  if(syncBtn) syncBtn.style.display = isAdmin ? 'inline-flex' : 'none';
+
+  var syncBtn=document.getElementById('sync-btn');
+  if(syncBtn) syncBtn.style.display=isAdmin?'inline-flex':'none';
+
+  ['tab-users-btn','tab-payouts-btn','tab-rates-btn','tab-api-btn'].forEach(function(id){
     document.getElementById(id).classList.toggle('hidden', !isAdmin);
   });
 
   // Hide rep filter for reps
-  if (!isAdmin) {
-    document.getElementById('rep-filter-lbl').style.display = 'none';
-    document.getElementById('f-rep').style.display = 'none';
+  if(!isAdmin){
+    document.getElementById('rep-filter-lbl').style.display='none';
+    document.getElementById('f-rep').style.display='none';
   }
 
-  // Load rates (public endpoint now — reps need them too)
-  await loadRatesFromServer();
-
-  if (isAdmin) {
+  // Load config/rates
+  if(isAdmin){
+    await loadRatesFromServer();
     loadSiteUrl();
     loadUsers();
-    loadPayouts();
-    await loadReviews();
-    await loadDisputes();
+  loadPayouts();
   }
 
   buildEps();
-
-  // Rep payout load — uses rep-scoped auth
-  if (!isAdmin) {
-    try {
-      var res = await fetch(commBase() + '?action=payouts', {
-        headers: { 'X-User-Password': SESSION.password || '' }
-      });
-      var pd = await res.json();
-      allPayouts = (pd.payouts || []).filter(function(p) { return !p.voided; });
-    } catch (e) { allPayouts = []; }
-    await loadReviews();
-    await loadDisputes();
+  // Load payouts for reps too (filtered to their own)
+  if(!isAdmin){
+    try{
+      var res=await fetch(commBase()+'?action=payouts&repId='+encodeURIComponent(SESSION.employeeId||''),
+        {headers:{'X-Admin-Password':SESSION.password||'','X-User-Password':SESSION.password||''}});
+      var pd=await res.json();
+      allPayouts=(pd.payouts||[]).filter(function(p){return !p.voided;});
+    }catch(e){ allPayouts=[]; }
   }
-
   await loadData();
 }
 
-function loadSiteUrl() {
+function loadSiteUrl(){
   var saved = localStorage.getItem('cms-site-url');
-  if (saved) document.getElementById('site-url').value = saved;
+  if(saved){
+    var el=document.getElementById('site-url'); if(el) el.value=saved;
+    var eq=document.getElementById('site-url-quick'); if(eq) eq.value=saved;
+    SITE_URL=saved;
+  }
 }
 
-// ── DATA LOAD (from Blobs cache) ──────────────────────────
-async function loadData() {
+// ── TABS ──────────────────────────────────────────────────
+function switchTab(t){
+  document.querySelectorAll('.ntab').forEach(function(el){el.classList.toggle('on',el.dataset.tab===t);});
+  document.querySelectorAll('.tab').forEach(function(el){el.classList.toggle('on',el.id==='tab-'+t);});
+}
+
+// ── DATA LOAD ─────────────────────────────────────────────
+async function loadData(){
   showDashLoading('Loading cached data…');
-  try {
-    // Try loading from Blobs cache first
-    var jobsRes = await fetch(commBase() + '?action=data&key=jobs');
-    var jobsData = await jobsRes.json();
-
-    var invRes = await fetch(commBase() + '?action=data&key=invoices');
-    var invData = await invRes.json();
-
-    var empRes = await fetch(commBase() + '?action=data&key=employees');
-    var empData = await empRes.json();
-
-    var custRes = await fetch(commBase() + '?action=data&key=customers');
-    var custData = await custRes.json();
-
-    // Check if we got cached data
-    var hasCache = jobsData.cached && invData.cached;
-
-    if (hasCache) {
-      jobs = jobsData.items || [];
-      invoices = invData.items || [];
-
-      empMap = {};
-      (empData.items || []).forEach(function(e) {
-        if (e && e.id) empMap[e.id] = empName(e);
-      });
-
-      // If employee cache is empty, fall back to live proxy
-      if (Object.keys(empMap).length === 0) {
-        console.warn('Employee cache empty — fetching live');
-        try {
-          var empLive = await fetchAllLive('/v1/employees', 'page_size');
-          empLive.forEach(function(e) {
-            if (e && e.id) empMap[e.id] = empName(e);
-          });
-          console.log('Live employee fetch:', Object.keys(empMap).length, 'mapped');
-        } catch (e) { console.warn('Employee live fallback failed:', e.message); }
-      }
-
-      custMap = {};
-      (custData.items || []).forEach(function(c) { if (c && c.id) custMap[c.id] = c; });
-
-      // If customer cache is empty, fall back to live proxy
-      if (Object.keys(custMap).length === 0) {
-        console.warn('Customer cache empty — fetching live');
-        try {
-          var custLive = await fetchAllLive('/v1/customers', 'limit');
-          custLive.forEach(function(c) { if (c && c.id) custMap[c.id] = c; });
-        } catch (e) { console.warn('Customer live fallback failed:', e.message); }
-      }
-
-      // Show sync timestamp
-      var statusRes = await fetch(commBase() + '?action=syncStatus');
-      var statusData = await statusRes.json();
-      if (statusData.syncedAt) {
-        var syncDate = new Date(statusData.syncedAt);
-        var statusText = 'Synced ' + syncDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' + syncDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-        var errKeys = Object.keys(statusData.errors || {});
-        if (errKeys.length) statusText += ' ⚠ ' + errKeys.join(', ') + ' failed';
-        document.getElementById('sync-status').textContent = statusText;
-        if (errKeys.length) console.warn('Sync errors:', statusData.errors);
-      }
-    } else {
-      // No cache — fall back to live proxy
-      showDashLoading('No cache — loading live from BuildOps…');
-      await loadDataLive();
+  try{
+    var ss=await fetch(commBase()+'?action=syncStatus');
+    var sd=await ss.json();
+    updateSyncStatus(sd.syncedAt,sd.errors);
+    if(!sd.syncedAt){
+      document.getElementById('dash-body').innerHTML='<div class="empty"><div class="empty-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></div><p>No data cached yet.</p><p style="font-size:11px;margin-top:4px">Click <strong>Sync Now</strong> to pull data from BuildOps.</p></div>';
       return;
     }
-
+    showDashLoading('Loading from cache…');
+    var results=await Promise.all([
+      fetch(commBase()+'?action=data&key=jobs').then(function(r){return r.json();}),
+      fetch(commBase()+'?action=data&key=invoices').then(function(r){return r.json();}),
+      fetch(commBase()+'?action=data&key=employees').then(function(r){return r.json();}),
+      fetch(commBase()+'?action=data&key=customers').then(function(r){return r.json();}),
+    ]);
+    jobs=results[0].items||[];
+    invoices=results[1].items||[];
+    empMap={};
+    (results[2].items||[]).forEach(function(e){
+      if(e&&e.id) empMap[e.id]=[e.firstName||'',e.lastName||''].filter(Boolean).join(' ').trim()||e.name||e.id;
+    });
+    custMap={};
+    (results[3].items||[]).forEach(function(c){if(c&&c.id) custMap[c.id]=c;});
+    console.log('[Commission] Loaded — jobs:',jobs.length,'invoices:',invoices.length,'employees:',Object.keys(empMap).length,'customers:',Object.keys(custMap).length);
     buildRepFilter();
     enrich();
     renderDash();
     renderPayoutPanel();
-  } catch (err) {
-    // Cache failed — try live
-    console.warn('Cache load failed, trying live:', err.message);
-    try {
-      await loadDataLive();
-    } catch (liveErr) {
-      document.getElementById('dash-body').innerHTML = '<div class="empty"><p style="color:var(--red)">Error loading data: ' + esc(liveErr.message) + '</p><p style="font-size:11px">Check Rates & Config tab or click Sync BuildOps.</p></div>';
-    }
+  }catch(err){
+    document.getElementById('dash-body').innerHTML='<div class="empty"><p style="color:var(--red)">Error: '+esc(err.message)+'</p></div>';
+    console.error('[Commission] loadData error:',err);
   }
 }
 
-// Live fallback — direct API proxy calls
-async function loadDataLive() {
-  showDashLoading('Loading jobs from BuildOps…');
-  jobs = await fetchAllLive('/v1/jobs', 'page_size');
-
-  showDashLoading('Loading invoices…');
-  invoices = await fetchAllLive('/v1/invoices', 'page_size');
-
-  empMap = {};
-  try {
-    // Employees use page_size param, max 100
-    var empData = await fetchAllLive('/v1/employees', 'page_size');
-    empData.forEach(function(e) {
-      if (e && e.id) empMap[e.id] = empName(e);
-    });
-    console.log('Employees loaded:', Object.keys(empMap).length);
-  } catch (e) { console.warn('Employees:', e.message); }
-
-  custMap = {};
-  try {
-    // Customers use limit param (NOT page_size), max 100
-    var custData = await fetchAllLive('/v1/customers', 'limit');
-    custData.forEach(function(c) { if (c && c.id) custMap[c.id] = c; });
-    console.log('Customers loaded:', Object.keys(custMap).length);
-  } catch (e) { console.warn('Customers:', e.message); }
-
-  buildRepFilter();
-  enrich();
-  renderDash();
-  renderPayoutPanel();
+function updateSyncStatus(syncedAt,errors){
+  var el=document.getElementById('sync-status');
+  if(!el) return;
+  if(!syncedAt){el.textContent='Never synced';el.style.color='rgba(255,255,255,.3)';return;}
+  var ago=Math.floor((Date.now()-new Date(syncedAt))/60000);
+  var label=ago<60?ago+'m ago':ago<1440?Math.floor(ago/60)+'h ago':new Date(syncedAt).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  el.textContent='Synced '+label;
+  el.style.color='rgba(255,255,255,.4)';
+  if(errors&&Object.keys(errors).length){el.textContent+=' ⚠';el.title='Errors: '+JSON.stringify(errors);}
 }
 
-async function fetchAllLive(ep, sizeParam) {
-  sizeParam = sizeParam || 'page_size';
-  var all = [], page = 0;
-  while (true) {
-    showDashLoading('Loading ' + ep.split('/v1/').pop().split('?')[0] + ' — ' + all.length + ' loaded…');
-    var d = await callProxy(ep + '?page=' + page + '&' + sizeParam + '=100');
-    var items = Array.isArray(d) ? d : (d && Array.isArray(d.items) ? d.items : []);
-    all = all.concat(items);
-    var total = d.totalCount || (d && d.query && d.query.totalCount) || 0;
-    console.log('fetchAllLive', ep, 'page=' + page, 'got=' + items.length, 'total=' + all.length, 'apiTotal=' + total);
-    if (items.length === 0) break;
-    if (total > 0 && all.length >= total) break;
-    if (total === 0 && items.length < 100) break;
+async function syncNow(){
+  var btn=document.getElementById('sync-btn');
+  if(btn){btn.innerHTML='<span class="spin"></span> Syncing…';btn.disabled=true;}
+  showDashLoading('Syncing from BuildOps — this takes 1-2 minutes…');
+  try{
+    var res=await fetch('/.netlify/functions/sync',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Admin-Password':SESSION.password||''}
+    });
+    var text=await res.text();
+    var d={};try{d=JSON.parse(text);}catch(ex){throw new Error('Bad response ('+res.status+'): '+text.slice(0,100));}
+    if(!res.ok) throw new Error(d.error||'Sync failed '+res.status);
+    console.log('[Commission] Sync complete:',d);
+    await loadData();
+  }catch(err){
+    alert('Sync failed: '+err.message);
+    document.getElementById('dash-body').innerHTML='<div class="empty"><p style="color:var(--red)">Sync error: '+esc(err.message)+'</p></div>';
+  }
+  if(btn){btn.innerHTML='<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Sync Now';btn.disabled=false;}
+}
+
+function updateSyncStatus(syncedAt, errors){
+  var el=document.getElementById('sync-status');
+  if(!el) return;
+  if(!syncedAt){ el.textContent='Never synced'; el.style.color='rgba(255,255,255,.3)'; return; }
+  var ago=Math.floor((Date.now()-new Date(syncedAt))/60000);
+  var label=ago<60?ago+'m ago':ago<1440?Math.floor(ago/60)+'h ago':new Date(syncedAt).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  el.textContent='Synced '+label;
+  el.style.color='rgba(255,255,255,.4)';
+  if(errors&&Object.keys(errors).length){ el.textContent+=' ⚠'; el.title='Errors: '+JSON.stringify(errors); }
+}
+
+async function syncNow(){
+  var btn=document.getElementById('sync-btn');
+  if(btn){btn.innerHTML='<span class="spin"></span> Syncing…';btn.disabled=true;}
+  showDashLoading('Syncing from BuildOps — this takes 1-2 minutes for all records…');
+  try{
+    var res=await fetch('/.netlify/functions/sync',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Admin-Password':SESSION.password||''}
+    });
+    var d=await res.json();
+    if(!res.ok) throw new Error(d.error||'Sync failed');
+    console.log('[Commission] Sync complete:',d);
+    await loadData();
+  }catch(err){
+    alert('Sync failed: '+err.message);
+    showDashLoading(null);
+    document.getElementById('dash-body').innerHTML='<div class="empty"><p style="color:var(--red)">Sync error: '+esc(err.message)+'</p></div>';
+  }
+  if(btn){btn.innerHTML='<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Sync Now';btn.disabled=false;}
+}
+
+async function callProxy(path){
+  var base=path.split('?')[0],qp=path.split('?')[1]||'';
+  var url=proxyBase()+'/.netlify/functions/proxy?endpoint='+encodeURIComponent(base)+(qp?'&'+qp:'');
+  var res=await fetch(url);
+  var text=await res.text();
+  if(!res.ok){var j={};try{j=JSON.parse(text);}catch(e){}throw new Error(j.error||'API error '+res.status);}
+  return JSON.parse(text);
+}
+
+async function fetchAll(ep){
+  var all=[],page=0;
+  // Strip any existing page params from endpoint
+  var cleanEp=ep.split('?')[0];
+  var baseQp=ep.includes('?')?ep.split('?')[1]:'';
+  while(true){
+    var label=cleanEp.split('/v1/').pop();
+    showDashLoading('Loading '+label+' — '+all.length+' loaded…');
+    var qp=(baseQp?baseQp+'&':'')+'page='+page+'&page_size=100';
+    var d=await callProxy(cleanEp+'?'+qp);
+    var items=Array.isArray(d)?d:Array.isArray(d&&d.items)?d.items:[];
+    all=all.concat(items);
+    var total=(d&&d.query&&d.query.totalCount)||(d&&d.totalCount)||0;
+    console.log('[fetchAll] '+label+' page='+page+' got='+items.length+' total='+total+' sofar='+all.length);
+    if(items.length<100||(total>0&&all.length>=total))break;
     page++;
+    if(page>50)break; // safety
   }
   return all;
 }
 
-async function callProxy(path) {
-  var base = path.split('?')[0], qp = path.split('?')[1] || '';
-  var url = proxyBase() + '/.netlify/functions/proxy?endpoint=' + encodeURIComponent(base) + (qp ? '&' + qp : '');
-  var res = await fetch(url);
-  var text = await res.text();
-  if (!res.ok) {
-    var j = {}; try { j = JSON.parse(text); } catch (e) {}
-    throw new Error(j.error || 'API error ' + res.status);
-  }
-  return JSON.parse(text);
-}
-
-// ── TRIGGER SYNC ──────────────────────────────────────────
-async function triggerSync() {
-  var btn = document.getElementById('sync-btn');
-  btn.innerHTML = '<span class="spin"></span> Syncing…'; btn.disabled = true;
-  try {
-    var res = await fetch(syncBase(), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': SESSION.password || '' },
-      body: '{}'
-    });
-    var d = await res.json();
-    if (!res.ok) throw new Error(d.error || 'Sync failed');
-    var counts = d.counts || {};
-    var errKeys = Object.keys(d.errors || {});
-    var msg = Object.entries(counts).map(function(e) { return e[0] + ': ' + e[1]; }).join(', ');
-    if (errKeys.length) msg += ' | FAILED: ' + errKeys.join(', ');
-    document.getElementById('sync-status').textContent = msg;
-    console.log('Sync result:', d);
-    if (errKeys.length) {
-      console.error('Sync errors:', d.errors);
-      alert('Sync partial failure:\n' + Object.entries(d.errors).map(function(e) { return e[0] + ': ' + e[1]; }).join('\n'));
-    }
-    // Reload from cache
-    await loadData();
-  } catch (err) {
-    alert('Sync error: ' + err.message);
-  }
-  btn.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Sync BuildOps';
-  btn.disabled = false;
-}
-
 // ── ENRICH ────────────────────────────────────────────────
-function enrich() {
-  var invByJob = {};
-  (invoices || []).forEach(function(inv) {
-    if (inv.jobId) {
-      if (!invByJob[inv.jobId]) invByJob[inv.jobId] = [];
+function enrich(){
+  var invByJob={};
+  (invoices||[]).forEach(function(inv){
+    if(inv.jobId){
+      if(!invByJob[inv.jobId])invByJob[inv.jobId]=[];
       invByJob[inv.jobId].push(inv);
     }
   });
-  var today = new Date();
+  var today=new Date();
 
-  enriched = (Array.isArray(jobs) ? jobs : []).map(function(job) {
-    var repId = job.accountManagerId || '';
-    var repName = repId ? (empMap[repId] || repId) : 'Unknown';
-    var cust = custMap[job.billingCustomerId] || {};
-    var tags = Array.isArray(cust.tags) ? cust.tags.map(function(t) { return (t && (t.name || t.label || t) || '').toLowerCase(); }) : [];
-    var isHouse = tags.some(function(t) { return t.includes('house'); });
-    var tagType = isHouse ? 'house' : (tags.length ? 'rep' : 'none');
-    var tagLabel = isHouse ? 'House Account' : (tags[0] ? cap(tags[0]) : 'No Tag');
-    var rate = RATES[tagType] || RATES.rep || 5;
-    var s = (job.status || '').toLowerCase();
-    var isComplete = s === 'completed' || s === 'complete' || s === 'closed';
+  enriched=(Array.isArray(jobs)?jobs:[]).map(function(job){
+    var repId=job.accountManagerId||'';
+    var repName=repId?(empMap[repId]||repId):'Unknown';
+    var cust=custMap[job.billingCustomerId]||{};
+    var tags=Array.isArray(cust.tags)?cust.tags.map(function(t){return(t&&(t.name||t.label||t)||'').toLowerCase();}):[];
+    var isHouse=tags.some(function(t){return t.includes('house');});
+    var tagType=isHouse?'house':(tags.length?'rep':'none');
+    var tagLabel=isHouse?'House Account':(tags[0]?cap(tags[0]):'No Tag');
+    var rate=RATES[tagType]||RATES.rep||5;
+    var s=(job.status||'').toLowerCase();
+    var isComplete=s==='completed'||s==='complete'||s==='closed';
 
-    var jobInvs = (invByJob[job.id] || []).filter(function(i) { return i.status !== 'void' && i.status !== 'deleted'; });
-    var mainInv = jobInvs.sort(function(a, b) { return (b.subtotal || 0) - (a.subtotal || 0); })[0] || null;
-    var subtotal = mainInv ? parseFloat(mainInv.subtotal || 0) : 0;
-    var commission = subtotal * (rate / 100);
-    var isPaid = mainInv && mainInv.status === 'closed';
+    var jobInvs=(invByJob[job.id]||[]).filter(function(i){return i.status!=='void'&&i.status!=='deleted';});
+    var mainInv=jobInvs.sort(function(a,b){return(b.subtotal||0)-(a.subtotal||0);})[0]||null;
+    var subtotal=mainInv?parseFloat(mainInv.subtotal||0):0;
+    var commission=subtotal*(rate/100);
+    var isPaid=mainInv&&mainInv.status==='closed';
 
-    var issuedDate = null;
-    if (mainInv && mainInv.issuedDate) {
-      var raw = String(mainInv.issuedDate);
-      issuedDate = new Date(raw.length <= 13 ? parseInt(raw) * (raw.length === 10 ? 1000 : 1) : raw);
-      if (isNaN(issuedDate.getTime())) issuedDate = null;
+    var issuedDate=null;
+    if(mainInv&&mainInv.issuedDate){
+      var raw=String(mainInv.issuedDate);
+      issuedDate=new Date(raw.length<=13?parseInt(raw)*(raw.length===10?1000:1):raw);
+      if(isNaN(issuedDate.getTime()))issuedDate=null;
     }
-    var daysSince = issuedDate ? Math.floor((today - issuedDate) / 86400000) : 0;
-    var isClawback = !isPaid && !!mainInv && daysSince >= RATES.cbDays;
-    var isWarn = !isPaid && !!mainInv && daysSince >= 60 && daysSince < RATES.cbDays;
+    var daysSince=issuedDate?Math.floor((today-issuedDate)/86400000):0;
+    var isClawback=!isPaid&&!!mainInv&&daysSince>=RATES.cbDays;
+    var isWarn=!isPaid&&!!mainInv&&daysSince>=60&&daysSince<RATES.cbDays;
 
-    return {
-      jobId: job.id, jobNumber: job.jobNumber || '—',
-      custName: job.billingCustomerName || (cust && cust.name) || '—',
-      repId: repId, repName: repName,
-      tagType: tagType, tagLabel: tagLabel,
-      isComplete: isComplete,
-      invNumber: mainInv ? mainInv.invoiceNumber : '—',
-      invoiced: !!mainInv, isPaid: isPaid,
-      issuedDate: issuedDate,
-      isClawback: isClawback, isWarn: isWarn,
-      commStatus: isPaid ? 'paid' : isClawback ? 'clawback' : 'pending',
-      subtotal: subtotal, rate: rate, commission: commission, daysSince: daysSince,
-      amountQuoted: parseFloat(job.amountPreTaxQuoted || 0),
+    return{
+      jobId:job.id,jobNumber:job.jobNumber||'—',
+      custName:job.billingCustomerName||(cust&&cust.name)||'—',
+      repId:repId,repName:repName,
+      tagType:tagType,tagLabel:tagLabel,
+      isComplete:isComplete,
+      invNumber:mainInv?mainInv.invoiceNumber:'—',
+      invoiced:!!mainInv,isPaid:isPaid,
+      issuedDate:issuedDate,
+      isClawback:isClawback,isWarn:isWarn,
+      commStatus:isPaid?'paid':isClawback?'clawback':'pending',
+      subtotal:subtotal,rate:rate,commission:commission,daysSince:daysSince,
+      amountQuoted:parseFloat(job.amountPreTaxQuoted||0),
     };
   });
 
-  // Filter to rep's own data
-  if (SESSION && SESSION.role === 'rep' && SESSION.employeeId) {
-    enriched = enriched.filter(function(r) { return r.repId === SESSION.employeeId; });
+  // Filter to rep's own data if rep role
+  if(SESSION&&SESSION.role==='rep'&&SESSION.employeeId){
+    enriched=enriched.filter(function(r){return r.repId===SESSION.employeeId;});
   }
 }
 
-function buildRepFilter() {
-  var sel = document.getElementById('f-rep');
-  if (SESSION && SESSION.role === 'rep') { sel.innerHTML = '<option value="all">My Jobs</option>'; return; }
-  var reps = {};
-  (jobs || []).forEach(function(j) {
-    if (j.accountManagerId) reps[j.accountManagerId] = empMap[j.accountManagerId] || j.accountManagerId;
+function buildRepFilter(){
+  var sel=document.getElementById('f-rep');
+  if(SESSION&&SESSION.role==='rep'){sel.innerHTML='<option value="all">My Jobs</option>';return;}
+  var reps={};
+  (jobs||[]).forEach(function(j){
+    if(j.accountManagerId) reps[j.accountManagerId]=empMap[j.accountManagerId]||j.accountManagerId;
   });
-  sel.innerHTML = '<option value="all">All Reps</option>' +
-    Object.entries(reps).sort(function(a, b) { return a[1].localeCompare(b[1]); })
-      .map(function(e) { return '<option value="' + esc(e[0]) + '">' + esc(e[1]) + '</option>'; }).join('');
+  sel.innerHTML='<option value="all">All Reps</option>'+
+    Object.entries(reps).sort(function(a,b){return a[1].localeCompare(b[1]);})
+      .map(function(e){return'<option value="'+esc(e[0])+'">'+esc(e[1])+'</option>';}).join('');
 }
 
 // ── FILTER / SORT ─────────────────────────────────────────
-function toggleCB() { cbOnly = !cbOnly; document.getElementById('cb-chip').classList.toggle('on', cbOnly); renderDash(); }
+var cbOnly=false;
 
-function handlePeriodChange() {
-  var v = document.getElementById('period-sel').value;
-  var show = v === 'custom';
-  document.getElementById('date-from').style.display = show ? '' : 'none';
-  document.getElementById('date-to').style.display = show ? '' : 'none';
-  document.getElementById('date-dash').style.display = show ? '' : 'none';
-  if (show && !document.getElementById('date-from').value) {
-    var now = new Date();
-    document.getElementById('date-from').value = now.getFullYear() + '-01-01';
-    document.getElementById('date-to').value = now.toISOString().slice(0, 10);
-  }
-  renderDash();
+function onPeriodChange(){
+  var v=document.getElementById('period-sel').value;
+  var w=document.getElementById('custom-date-wrap');
+  if(w) w.style.display=v==='custom'?'flex':'none';
+  if(v!=='custom') renderDash();
 }
-function setSort(col) { if (sortCol === col) sortDir = sortDir === 'asc' ? 'desc' : 'asc'; else { sortCol = col; sortDir = 'desc'; } renderDash(); }
-function filterRep(id) { var s = document.getElementById('f-rep'); s.value = s.value === id ? 'all' : id; renderDash(); }
 
-function getFiltered() {
-  var period = document.getElementById('period-sel').value;
-  var repF = document.getElementById('f-rep').value;
-  var tagF = document.getElementById('f-tag').value;
-  var stF = document.getElementById('f-status').value;
-  var jbF = document.getElementById('f-job').value;
-  var q = document.getElementById('f-search').value.toLowerCase().trim();
-  var now = new Date();
+function onPeriodChange(){
+  var v=document.getElementById('period-sel').value;
+  var w=document.getElementById('custom-date-wrap');
+  if(w) w.style.display=v==='custom'?'flex':'none';
+  if(v!=='custom') renderDash();
+}
+function toggleCB(){cbOnly=!cbOnly;document.getElementById('cb-chip').classList.toggle('on',cbOnly);renderDash();}
+function setSort(col){if(sortCol===col)sortDir=sortDir==='asc'?'desc':'asc';else{sortCol=col;sortDir='desc';}renderDash();}
+function filterRep(id){var s=document.getElementById('f-rep');s.value=s.value===id?'all':id;renderDash();}
 
-  return (enriched || []).filter(function(r) {
-    if (r.issuedDate) {
-      var d = r.issuedDate;
-      if (period === 'mtd' && (d.getMonth() !== now.getMonth() || d.getFullYear() !== now.getFullYear())) return false;
-      if (period === 'qtd') { var qn = Math.floor(now.getMonth() / 3), dq = Math.floor(d.getMonth() / 3); if (dq !== qn || d.getFullYear() !== now.getFullYear()) return false; }
-      if (period === 'ytd' && d.getFullYear() !== now.getFullYear()) return false;
-      if (period === 'custom') {
-        var from = document.getElementById('date-from').value;
-        var to = document.getElementById('date-to').value;
-        if (from && d < new Date(from + 'T00:00:00')) return false;
-        if (to && d > new Date(to + 'T23:59:59')) return false;
+function getFiltered(){
+  var period=document.getElementById('period-sel').value;
+  var repF=document.getElementById('f-rep').value;
+  var tagF=document.getElementById('f-tag').value;
+  var stF=document.getElementById('f-status').value;
+  var jbF=document.getElementById('f-job').value;
+  var q=document.getElementById('f-search').value.toLowerCase().trim();
+  var now=new Date();
+
+  return (enriched||[]).filter(function(r){
+    if(r.issuedDate){
+      var d=r.issuedDate;
+      var cy=now.getFullYear(), cm=now.getMonth();
+      // Last month
+      var lmS=new Date(cy,cm-1,1), lmE=new Date(cy,cm,0);
+      // Last quarter
+      var cq=Math.floor(cm/3);
+      var lqS=cq>0?new Date(cy,(cq-1)*3,1):new Date(cy-1,9,1);
+      var lqE=cq>0?new Date(cy,cq*3,0):new Date(cy-1,11,31);
+      if(period==='mtd'&&(d.getMonth()!==cm||d.getFullYear()!==cy))return false;
+      if(period==='lm'&&(d<lmS||d>lmE))return false;
+      if(period==='qtd'){var qn=Math.floor(cm/3),dq=Math.floor(d.getMonth()/3);if(dq!==qn||d.getFullYear()!==cy)return false;}
+      if(period==='lq'&&(d<lqS||d>lqE))return false;
+      if(period==='ytd'&&d.getFullYear()!==cy)return false;
+      if(period==='ly'&&d.getFullYear()!==cy-1)return false;
+      if(period==='custom'){
+        var df=document.getElementById('date-from'),dt=document.getElementById('date-to');
+        if(df&&df.value&&d<new Date(df.value))return false;
+        if(dt&&dt.value&&d>new Date(dt.value+'T23:59:59'))return false;
       }
     }
-    if (repF !== 'all' && r.repId !== repF) return false;
-    if (tagF !== 'all' && r.tagType !== tagF) return false;
-    if (stF !== 'all' && r.commStatus !== stF) return false;
-    if (jbF === 'complete' && !r.isComplete) return false;
-    if (jbF === 'open' && r.isComplete) return false;
-    if (cbOnly && !r.isClawback) return false;
-    if (q && !(r.custName.toLowerCase().includes(q) || r.jobNumber.toLowerCase().includes(q) || r.invNumber.toLowerCase().includes(q) || (SESSION.role === 'admin' && r.repName.toLowerCase().includes(q)))) return false;
+    if(repF!=='all'&&r.repId!==repF)return false;
+    if(tagF!=='all'&&r.tagType!==tagF)return false;
+    if(stF!=='all'&&r.commStatus!==stF)return false;
+    if(jbF==='complete'&&!r.isComplete)return false;
+    if(jbF==='open'&&r.isComplete)return false;
+    if(cbOnly&&!r.isClawback)return false;
+    if(q&&!(r.custName.toLowerCase().includes(q)||r.jobNumber.toLowerCase().includes(q)||r.invNumber.toLowerCase().includes(q)||(SESSION.role==='admin'&&r.repName.toLowerCase().includes(q))))return false;
     return true;
-  }).sort(function(a, b) {
-    var av = a[sortCol], bv = b[sortCol];
-    if (av == null) av = ''; if (bv == null) bv = '';
-    if (av instanceof Date && bv instanceof Date) return sortDir === 'asc' ? av - bv : bv - av;
-    if (typeof av === 'string') return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
-    return sortDir === 'asc' ? av - bv : bv - av;
+  }).sort(function(a,b){
+    var av=a[sortCol],bv=b[sortCol];
+    if(av==null)av='';if(bv==null)bv='';
+    if(av instanceof Date&&bv instanceof Date)return sortDir==='asc'?av-bv:bv-av;
+    if(typeof av==='string'&&typeof bv==='string')return sortDir==='asc'?av.localeCompare(bv):bv.localeCompare(av);
+    av=typeof av==='string'?av:Number(av)||0;
+    bv=typeof bv==='string'?bv:Number(bv)||0;
+    return sortDir==='asc'?av-bv:bv-av;
   });
 }
 
-// ── RENDER DASHBOARD ──────────────────────────────────────
-function renderDash() {
-  if (!enriched.length) return;
-  var rows = getFiltered();
-  var isAdmin = SESSION && SESSION.role === 'admin';
-  var invRows = rows.filter(function(r) { return r.invoiced; });
-  var earned = invRows.filter(function(r) { return r.isPaid; }).reduce(function(s, r) { return s + r.commission; }, 0);
-  var pending = invRows.filter(function(r) { return !r.isPaid && !r.isClawback; }).reduce(function(s, r) { return s + r.commission; }, 0);
-  var cbAmt = invRows.filter(function(r) { return r.isClawback; }).reduce(function(s, r) { return s + r.commission; }, 0);
-  var cbCnt = invRows.filter(function(r) { return r.isClawback; }).length;
-  var totalSub = invRows.reduce(function(s, r) { return s + r.subtotal; }, 0);
-  var completeCt = rows.filter(function(r) { return r.isComplete; }).length;
+// ── RENDER ────────────────────────────────────────────────
+function renderDash(){
+  if(!enriched.length)return;
+  var rows=getFiltered();
+  var isAdmin=SESSION&&SESSION.role==='admin';
+  var invRows=rows.filter(function(r){return r.invoiced;});
+  var earned=invRows.filter(function(r){return r.isPaid;}).reduce(function(s,r){return s+r.commission;},0);
+  var pending=invRows.filter(function(r){return!r.isPaid&&!r.isClawback;}).reduce(function(s,r){return s+r.commission;},0);
+  var cbAmt=invRows.filter(function(r){return r.isClawback;}).reduce(function(s,r){return s+r.commission;},0);
+  var cbCnt=invRows.filter(function(r){return r.isClawback;}).length;
+  var totalSub=invRows.reduce(function(s,r){return s+r.subtotal;},0);
+  var completeCt=rows.filter(function(r){return r.isComplete;}).length;
 
-  document.getElementById('result-ct').textContent = rows.length + ' jobs';
+  document.getElementById('result-ct').textContent=rows.length+' of '+enriched.length+' jobs';
 
-  var html = '<div>';
+  var html='<div>';
 
   // KPIs
-  html += '<div class="kpis">';
-  html += kpi('Jobs', rows.length, 'in view', 'bl');
-  html += kpi('Complete', completeCt, Math.round(completeCt / Math.max(rows.length, 1) * 100) + '%', 'gr');
-  html += kpi('Invoice Subtotal', fmt(totalSub), 'before tax', '');
-  html += kpi('Earned', fmt(earned), 'commissions paid', 'gr');
-  html += kpi('Pending', fmt(pending), 'awaiting payment', 'am');
-  html += kpi('Clawback Risk', fmt(cbAmt), cbCnt + ' invoices', 'rd');
-  html += '</div>';
+  html+='<div class="kpis">';
+  html+=kpi('Jobs',rows.length,'in view','bl');
+  html+=kpi('Complete',completeCt,Math.round(completeCt/Math.max(rows.length,1)*100)+'%','gr');
+  html+=kpi('Invoice Subtotal',fmt(totalSub),'before tax','');
+  html+=kpi('Earned',fmt(earned),'commissions paid','gr');
+  html+=kpi('Pending',fmt(pending),'awaiting payment','am');
+  html+=kpi('Clawback Risk',fmt(cbAmt),cbCnt+' invoices','rd');
+  html+='</div>';
 
   // Leaderboard — admin only
-  if (isAdmin) {
-    var byRep = {};
-    rows.forEach(function(r) {
-      if (!r.repId) return;
-      if (!byRep[r.repId]) byRep[r.repId] = { name: r.repName, jobs: 0, done: 0, earned: 0, pending: 0, cb: 0 };
+  if(isAdmin){
+    var byRep={};
+    rows.forEach(function(r){
+      if(!r.repId)return;
+      if(!byRep[r.repId])byRep[r.repId]={name:r.repName,jobs:0,done:0,earned:0,pending:0,cb:0};
       byRep[r.repId].jobs++;
-      if (r.isComplete) byRep[r.repId].done++;
-      if (r.isPaid) byRep[r.repId].earned += r.commission;
-      else if (r.isClawback) byRep[r.repId].cb += r.commission;
-      else if (r.invoiced) byRep[r.repId].pending += r.commission;
+      if(r.isComplete)byRep[r.repId].done++;
+      if(r.isPaid)byRep[r.repId].earned+=r.commission;
+      else if(r.isClawback)byRep[r.repId].cb+=r.commission;
+      else if(r.invoiced)byRep[r.repId].pending+=r.commission;
     });
-    var repList = Object.entries(byRep).filter(function(e) { return e && e[0] && e[1]; })
-      .sort(function(a, b) { return (b[1].earned + b[1].pending) - (a[1].earned + a[1].pending); });
-    if (repList.length) {
-      html += '<div class="sh"><span class="sh-t">Account Manager Performance</span><div class="sh-l"></div></div>';
-      html += '<div class="lbg">';
-      var aRep = document.getElementById('f-rep').value;
-      repList.forEach(function(e, i) {
-        var id = e[0], d = e[1];
-        html += '<div class="lbc' + (aRep === id ? ' on' : '') + '" onclick="filterRep(\'' + esc(id) + '\')">'
-          + '<div class="lbc-rank">#' + (i + 1) + '</div>'
-          + '<div class="lbc-name">' + esc(d.name) + '</div>'
-          + '<div class="lbc-stats">'
-          + '<div class="lbs"><div class="lbs-l">Earned</div><div class="lbs-v g">' + fmt(d.earned) + '</div></div>'
-          + '<div class="lbs"><div class="lbs-l">Pending</div><div class="lbs-v a">' + fmt(d.pending) + '</div></div>'
-          + '<div class="lbs"><div class="lbs-l">Jobs</div><div class="lbs-v">' + d.done + '/' + d.jobs + '</div></div>'
-          + '</div></div>';
+    var repList=Object.entries(byRep).filter(function(e){return e&&e[0]&&e[1];})
+      .sort(function(a,b){return(b[1].earned+b[1].pending)-(a[1].earned+a[1].pending);});
+    if(repList.length){
+      html+='<div class="sh"><span class="sh-t">Account Manager Performance</span><div class="sh-l"></div></div>';
+      html+='<div class="lbg">';
+      var aRep=document.getElementById('f-rep').value;
+      repList.forEach(function(e,i){
+        var id=e[0],d=e[1];
+        html+='<div class="lbc'+(aRep===id?' on':'')+'" onclick="filterRep(\''+esc(id)+'\')">'
+          +'<div class="lbc-rank">#'+(i+1)+'</div>'
+          +'<div class="lbc-name">'+esc(d.name)+'</div>'
+          +'<div class="lbc-stats">'
+          +'<div class="lbs"><div class="lbs-l">Earned</div><div class="lbs-v g">'+fmt(d.earned)+'</div></div>'
+          +'<div class="lbs"><div class="lbs-l">Pending</div><div class="lbs-v a">'+fmt(d.pending)+'</div></div>'
+          +'<div class="lbs"><div class="lbs-l">Jobs</div><div class="lbs-v">'+d.done+'/'+d.jobs+'</div></div>'
+          +'</div></div>';
       });
-      html += '</div>';
+      html+='</div>';
     }
   }
 
   // Clawback panel
-  var cbRows = rows.filter(function(r) { return r.isClawback; });
-  if (cbRows.length) {
-    html += '<div class="sh"><span class="sh-t" style="color:var(--red)">⚠ Clawback Tracker — ' + cbRows.length + ' at risk</span><div class="sh-l" style="background:var(--red-b)"></div></div>';
-    html += '<div class="card" style="border-color:var(--red-b)"><div class="twrap"><table><thead><tr>'
-      + '<th>Job #</th><th>Invoice #</th><th>Customer</th>'
-      + (isAdmin ? '<th>Rep</th>' : '')
-      + '<th>Tag</th><th class="n">Subtotal</th><th class="n">Commission</th><th>Issue Date</th><th class="n">Days Unpaid</th>'
-      + '</tr></thead><tbody>';
-    cbRows.forEach(function(r) {
-      html += '<tr class="cb-row"><td class="nm">' + esc(r.jobNumber) + '</td><td>' + esc(r.invNumber) + '</td><td>' + esc(r.custName) + '</td>'
-        + (isAdmin ? '<td>' + esc(r.repName) + '</td>' : '')
-        + '<td>' + tBadge(r) + '</td><td class="n">' + fmt(r.subtotal) + '</td>'
-        + '<td class="n" style="color:var(--red);font-weight:700">' + fmt(r.commission) + '</td>'
-        + '<td>' + fd(r.issuedDate) + '</td><td class="n" style="color:var(--red);font-weight:700">' + r.daysSince + '</td></tr>';
+  var cbRows=rows.filter(function(r){return r.isClawback;});
+  if(cbRows.length){
+    html+='<div class="sh"><span class="sh-t" style="color:var(--red)">⚠ Clawback Tracker — '+cbRows.length+' at risk</span><div class="sh-l" style="background:var(--red-b)"></div></div>';
+    html+='<div class="card" style="border-color:var(--red-b)"><div class="twrap"><table><thead><tr>'
+      +'<th>Job #</th><th>Invoice #</th><th>Customer</th>'
+      +(isAdmin?'<th>Rep</th>':'')
+      +'<th>Tag</th><th class="n">Subtotal</th><th class="n">Commission</th><th>Issue Date</th><th class="n">Days Unpaid</th>'
+      +'</tr></thead><tbody>';
+    cbRows.forEach(function(r){
+      html+='<tr class="cb-row"><td class="nm">'+esc(r.jobNumber)+'</td><td>'+esc(r.invNumber)+'</td><td>'+esc(r.custName)+'</td>'
+        +(isAdmin?'<td>'+esc(r.repName)+'</td>':'')
+        +'<td>'+tBadge(r)+'</td><td class="n">'+fmt(r.subtotal)+'</td>'
+        +'<td class="n" style="color:var(--red);font-weight:700">'+fmt(r.commission)+'</td>'
+        +'<td>'+fd(r.issuedDate)+'</td><td class="n" style="color:var(--red);font-weight:700">'+r.daysSince+'</td></tr>';
     });
-    html += '</tbody></table></div></div>';
+    html+='</tbody></table></div></div>';
   }
 
   // Rep summary (rep view only)
-  if (!isAdmin) {
-    var repPayouts = allPayouts.filter(function(p) { return p.repId === SESSION.employeeId; });
-    var curMonth = new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0');
-    var curMonthLabel = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-    var curReview = allReviews.find(function(r) { return r.repId === SESSION.employeeId && r.month === curMonth; });
-    var hasAcked = curReview && curReview.repAcknowledged;
-    var myDisputes = allDisputes.filter(function(d) { return d.repId === SESSION.employeeId && d.status === 'open'; });
+  if(!isAdmin){
+    // Load rep's payout history
+    var repPayouts=allPayouts.filter(function(p){return p.repId===SESSION.employeeId;});
+    html+='<div class="sh"><span class="sh-t">Your Commission Summary</span><div class="sh-l"></div></div>';
+    html+='<div class="card"><div class="card-body" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;text-align:center">';
+    html+='<div><div class="kpi-l">Earned YTD</div><div class="kpi-v gr" style="font-size:28px">'+fmt(earned)+'</div></div>';
+    html+='<div><div class="kpi-l">Pending</div><div class="kpi-v am" style="font-size:28px">'+fmt(pending)+'</div></div>';
+    html+='<div><div class="kpi-l">Clawback Risk</div><div class="kpi-v rd" style="font-size:28px">'+fmt(cbAmt)+'</div></div>';
+    html+='</div></div>';
 
-    html += '<div class="sh"><span class="sh-t">Your Commission Summary</span><div class="sh-l"></div></div>';
-    html += '<div class="card"><div class="card-body">';
-    html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;text-align:center;margin-bottom:16px">';
-    html += '<div><div class="kpi-l">Earned YTD</div><div class="kpi-v gr" style="font-size:28px">' + fmt(earned) + '</div></div>';
-    html += '<div><div class="kpi-l">Pending</div><div class="kpi-v am" style="font-size:28px">' + fmt(pending) + '</div></div>';
-    html += '<div><div class="kpi-l">Clawback Risk</div><div class="kpi-v rd" style="font-size:28px">' + fmt(cbAmt) + '</div></div>';
-    html += '</div>';
-    // Proof / acknowledge section
-    html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--surface2);border-radius:var(--r2);border:1px solid var(--line)">';
-    html += '<div><div style="font-size:13px;font-weight:600;color:var(--text)">Monthly Review — ' + curMonthLabel + '</div>';
-    html += '<div style="font-size:11px;color:var(--faint);margin-top:2px">Review your commission detail below. Acknowledge when accurate, or flag any discrepancies.</div></div>';
-    if (hasAcked) {
-      html += '<span class="badge b-paid" style="flex-shrink:0">Acknowledged ✓</span>';
-    } else {
-      html += '<button class="btn btn-p bsm" style="flex-shrink:0" onclick="repAcknowledge(\'' + curMonth + '\')">I\'ve Reviewed — Acknowledge</button>';
-    }
-    html += '</div>';
-    if (myDisputes.length) {
-      html += '<div style="margin-top:10px;padding:10px 14px;background:var(--amber-s);border:1px solid var(--amber-b);border-radius:var(--r2);font-size:12px;color:var(--amber)">';
-      html += '<strong>' + myDisputes.length + ' open dispute' + (myDisputes.length > 1 ? 's' : '') + '</strong> — admin has been notified.';
-      html += '</div>';
-    }
-    html += '</div></div>';
-
-    if (repPayouts.length) {
-      html += '<div class="sh"><span class="sh-t">Your payout history</span><div class="sh-l"></div></div>';
-      html += '<div class="card"><div class="twrap"><table><thead><tr><th>Month</th><th class="n">Commission</th><th>Paid Date</th><th>Note</th></tr></thead><tbody>';
-      repPayouts.sort(function(a, b) { return new Date(b.paidDate) - new Date(a.paidDate); }).forEach(function(p) {
-        html += '<tr><td class="nm">' + esc(p.monthLabel || p.month) + '</td>'
-          + '<td class="n" style="color:var(--green);font-weight:700">' + fmt(p.amount) + '</td>'
-          + '<td>' + new Date(p.paidDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + '</td>'
-          + '<td style="color:var(--faint);font-size:11px">' + esc(p.note || '—') + '</td></tr>';
+    // Rep payout history
+    if(repPayouts.length){
+      html+='<div class="sh"><span class="sh-t">Your payout history</span><div class="sh-l"></div></div>';
+      html+='<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr>'
+        +'<th>Month</th><th class="n">Commission</th><th>Paid Date</th><th>Note</th>'
+        +'</tr></thead><tbody>';
+      repPayouts.sort(function(a,b){return new Date(b.paidDate)-new Date(a.paidDate);}).forEach(function(p){
+        html+='<tr>'
+          +'<td class="nm">'+esc(p.monthLabel||p.month)+'</td>'
+          +'<td class="n" style="color:var(--green);font-weight:700">'+fmt(p.amount)+'</td>'
+          +'<td>'+new Date(p.paidDate).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+'</td>'
+          +'<td style="color:var(--faint);font-size:11px">'+esc(p.note||'—')+'</td>'
+          +'</tr>';
       });
-      html += '</tbody></table></div></div>';
+      html+='</tbody></table></div></div>';
     }
   }
 
   // Main table
-  var cols = [
-    { k: 'jobNumber', l: 'Job #' },
-    { k: 'custName', l: 'Customer' },
-    { k: 'tagType', l: 'Tag' },
+  var cols=[
+    {k:'jobNumber',l:'Job #'},
+    {k:'custName',l:'Customer'},
+    {k:'tagType',l:'Tag'},
   ];
-  if (isAdmin) cols.push({ k: 'repName', l: 'Account Mgr' });
-  cols = cols.concat([
-    { k: 'isComplete', l: 'Status' },
-    { k: 'invNumber', l: 'Invoice #' },
-    { k: 'issuedDate', l: 'Issue Date' },
-    { k: 'subtotal', l: 'Subtotal', cls: 'n' },
-    { k: 'rate', l: 'Rate', cls: 'n' },
-    { k: 'commission', l: 'Commission', cls: 'n' },
-    { k: 'commStatus', l: 'Comm Status' },
-    { k: 'daysSince', l: 'Days Open', cls: 'n' },
+  if(isAdmin) cols.push({k:'repName',l:'Account Mgr'});
+  cols=cols.concat([
+    {k:'isComplete',l:'Status'},
+    {k:'invNumber',l:'Invoice #'},
+    {k:'issuedDate',l:'Issue Date'},
+    {k:'subtotal',l:'Subtotal',cls:'n'},
+    {k:'rate',l:'Rate',cls:'n'},
+    {k:'commission',l:'Commission',cls:'n'},
+    {k:'commStatus',l:'Comm Status'},
+    {k:'daysSince',l:'Days Open',cls:'n'},
   ]);
-  if (!isAdmin) cols.push({ k: '_action', l: '' });
 
-  html += '<div class="sh"><span class="sh-t">Job Commission Detail</span><div class="sh-l"></div></div>';
-  html += '<div class="card"><div class="twrap"><table><thead><tr>';
-  cols.forEach(function(c) {
-    var arrow = sortCol === c.k ? (sortDir === 'asc' ? ' ↑' : ' ↓') : '';
-    html += '<th class="' + (c.cls || '') + '" onclick="setSort(\'' + c.k + '\')" style="' + (sortCol === c.k ? 'color:var(--text)' : '') + '">' + c.l + arrow + '</th>';
+  html+='<div class="sh"><span class="sh-t">Job Commission Detail</span><div class="sh-l"></div></div>';
+  html+='<div class="card"><div class="twrap"><table><thead><tr>';
+  cols.forEach(function(c){
+    var arrow=sortCol===c.k?(sortDir==='asc'?' ↑':' ↓'):'';
+    html+='<th class="'+(c.cls||'')+'" onclick="setSort(\''+c.k+'\')" style="'+(sortCol===c.k?'color:var(--text)':'')+'">'+c.l+arrow+'</th>';
   });
-  html += '</tr></thead><tbody>';
+  html+='</tr></thead><tbody>';
 
-  if (!rows.length) {
-    html += '<tr><td colspan="' + cols.length + '" style="text-align:center;color:var(--faint);padding:32px">No records match current filters</td></tr>';
+  if(!rows.length){
+    html+='<tr><td colspan="'+(cols.length)+'" style="text-align:center;color:var(--faint);padding:32px">No records match current filters</td></tr>';
   }
-  rows.forEach(function(r) {
-    var rc = r.isClawback ? ' class="cb-row"' : r.isWarn ? ' class="warn-row"' : '';
-    html += '<tr' + rc + '>';
-    html += '<td class="nm">' + esc(r.jobNumber) + '</td>';
-    html += '<td>' + esc(r.custName) + '</td>';
-    html += '<td>' + tBadge(r) + '</td>';
-    if (isAdmin) html += '<td>' + esc(r.repName) + '</td>';
-    html += '<td>' + (r.isComplete ? '<span class="badge b-complete">Complete</span>' : '<span class="badge b-open">Open</span>') + '</td>';
-    html += '<td>' + (r.invoiced ? esc(r.invNumber) : '<span style="color:var(--faint);font-style:italic;font-size:11px">Not invoiced</span>') + '</td>';
-    html += '<td>' + fd(r.issuedDate) + '</td>';
-    html += '<td class="n">' + (r.invoiced ? fmt(r.subtotal) : '—') + '</td>';
-    html += '<td class="n">' + r.rate + '%</td>';
-    html += '<td class="n" style="font-weight:700;color:' + (r.isPaid ? 'var(--green)' : r.isClawback ? 'var(--red)' : r.invoiced ? 'var(--amber)' : 'var(--faint)') + '">' + (r.invoiced ? fmt(r.commission) : '—') + '</td>';
-    html += '<td>' + sBadge(r) + '</td>';
-    html += '<td class="n" style="' + (r.isClawback ? 'color:var(--red);font-weight:700' : r.isWarn ? 'color:var(--amber)' : '') + '">' + (r.invoiced ? r.daysSince : '—') + '</td>';
-    if (!isAdmin && r.invoiced) {
-      var hasDispute = allDisputes.some(function(d) { return d.jobId === r.jobId && d.status === 'open'; });
-      html += '<td>' + (hasDispute ? '<span class="badge b-warn" style="font-size:9px">Disputed</span>' : '<button class="btn btn-o bsm" style="font-size:9px;padding:3px 8px;color:var(--amber);border-color:var(--amber-b)" onclick="openDispute(\'' + esc(r.jobId) + '\',\'' + esc(r.jobNumber) + '\',\'' + esc(r.invNumber) + '\')">Flag Issue</button>') + '</td>';
-    } else if (!isAdmin) {
-      html += '<td></td>';
-    }
-    html += '</tr>';
+  rows.forEach(function(r){
+    var rc=r.isClawback?' class="cb-row"':r.isWarn?' class="warn-row"':'';
+    html+='<tr'+rc+'>';
+    html+='<td class="nm">'+esc(r.jobNumber)+'</td>';
+    html+='<td>'+esc(r.custName)+'</td>';
+    html+='<td>'+tBadge(r)+'</td>';
+    if(isAdmin) html+='<td>'+esc(r.repName)+'</td>';
+    html+='<td>'+(r.isComplete?'<span class="badge b-complete">Complete</span>':'<span class="badge b-open">Open</span>')+'</td>';
+    html+='<td>'+(r.invoiced?esc(r.invNumber):'<span style="color:var(--faint);font-style:italic;font-size:11px">Not invoiced</span>')+'</td>';
+    html+='<td>'+fd(r.issuedDate)+'</td>';
+    html+='<td class="n">'+(r.invoiced?fmt(r.subtotal):'—')+'</td>';
+    html+='<td class="n">'+r.rate+'%</td>';
+    html+='<td class="n" style="font-weight:700;color:'+(r.isPaid?'var(--green)':r.isClawback?'var(--red)':r.invoiced?'var(--amber)':'var(--faint)')+'">'+( r.invoiced?fmt(r.commission):'—')+'</td>';
+    html+='<td>'+sBadge(r)+'</td>';
+    html+='<td class="n" style="'+(r.isClawback?'color:var(--red);font-weight:700':r.isWarn?'color:var(--amber)':'')+'">'+( r.invoiced?r.daysSince:'—')+'</td>';
+    html+='</tr>';
   });
-  html += '</tbody></table></div>';
-  html += '<div style="display:flex;gap:14px;justify-content:flex-end;padding:9px 14px;font-size:12px;color:var(--muted);flex-wrap:wrap;border-top:1px solid var(--line)">';
-  html += '<span>Subtotal: <strong style="color:var(--text);font-family:monospace">' + fmt(totalSub) + '</strong></span>';
-  html += '<span>Earned: <strong style="color:var(--green);font-family:monospace">' + fmt(earned) + '</strong></span>';
-  html += '<span>Pending: <strong style="color:var(--amber);font-family:monospace">' + fmt(pending) + '</strong></span>';
-  html += '<span>Clawback: <strong style="color:var(--red);font-family:monospace">' + fmt(cbAmt) + '</strong></span>';
-  html += '</div></div></div>';
+  html+='</tbody></table></div>';
+  // Footer totals
+  html+='<div style="display:flex;gap:14px;justify-content:flex-end;padding:9px 14px;font-size:12px;color:var(--muted);flex-wrap:wrap;border-top:1px solid var(--border)">';
+  html+='<span>Subtotal: <strong style="color:var(--text);font-family:monospace">'+fmt(totalSub)+'</strong></span>';
+  html+='<span>Earned: <strong style="color:var(--green);font-family:monospace">'+fmt(earned)+'</strong></span>';
+  html+='<span>Pending: <strong style="color:var(--amber);font-family:monospace">'+fmt(pending)+'</strong></span>';
+  html+='<span>Clawback: <strong style="color:var(--red);font-family:monospace">'+fmt(cbAmt)+'</strong></span>';
+  html+='</div></div></div>';
 
-  document.getElementById('dash-body').innerHTML = html;
+  document.getElementById('dash-body').innerHTML=html;
 }
 
 // ── USERS ─────────────────────────────────────────────────
-async function loadUsers() {
-  try {
-    var res = await fetch(commBase() + '?action=users', { headers: { 'X-Admin-Password': SESSION.password } });
-    var d = await res.json();
-    renderUsers(d.users || []);
-  } catch (err) {
-    document.getElementById('user-list').innerHTML = '<div style="padding:20px;color:var(--red);font-size:12px">Error: ' + esc(err.message) + '</div>';
+async function loadUsers(){
+  try{
+    var res=await fetch(commBase()+'?action=users',{headers:{'X-Admin-Password':SESSION.password}});
+    var d=await res.json();
+    renderUsers(d.users||[]);
+  }catch(err){
+    document.getElementById('user-list').innerHTML='<div style="padding:20px;color:var(--red);font-size:12px">Error: '+esc(err.message)+'</div>';
   }
 }
 
-function renderUsers(users) {
-  document.getElementById('user-count').textContent = users.length;
-  if (!users.length) {
-    document.getElementById('user-list').innerHTML = '<div style="padding:32px;text-align:center;color:var(--faint);font-size:13px">No reps added yet. Select from BuildOps employees on the left.</div>';
+function renderUsers(users){
+  document.getElementById('user-count').textContent=users.length;
+  if(!users.length){
+    document.getElementById('user-list').innerHTML='<div style="padding:32px;text-align:center;color:var(--faint);font-size:13px">No reps added yet. Click Add Rep to get started.</div>';
     return;
   }
-  document.getElementById('user-list').innerHTML = users.map(function(u) {
-    var initials = (u.name || '?').split(' ').map(function(w) { return w[0]; }).slice(0, 2).join('').toUpperCase();
-    return '<div class="user-row" data-emp-id="' + esc(u.buildopsEmployeeId || u.id || '') + '">'
-      + '<div class="user-avatar">' + initials + '</div>'
-      + '<div class="user-info">'
-      + '<div class="user-name">' + esc(u.name) + '</div>'
-      + '<div class="user-meta">' + esc(u.buildopsEmployeeId || 'No Employee ID') + '</div>'
-      + '</div>'
-      + '<span class="badge ' + (u.role === 'admin' ? 'b-admin' : 'b-rep-role') + '" style="margin-right:8px">' + (u.role || 'rep') + '</span>'
-      + '<div class="user-actions">'
-      + '<button class="btn btn-r bsm" onclick="deleteUser(\'' + esc(u.id) + '\',\'' + esc(u.name) + '\')">Remove</button>'
-      + '</div></div>';
+  document.getElementById('user-list').innerHTML=users.map(function(u){
+    var initials=(u.name||'?').split(' ').map(function(w){return w[0];}).slice(0,2).join('').toUpperCase();
+    return'<div class="user-row" data-emp-id="'+esc(u.buildopsEmployeeId||u.id||'')+'">'
+      +'<div class="user-avatar">'+initials+'</div>'
+      +'<div class="user-info">'
+        +'<div class="user-name">'+esc(u.name)+'</div>'
+        +'<div class="user-meta">'+esc(u.buildopsEmployeeId||'No Employee ID set')+'</div>'
+      +'</div>'
+      +'<span class="badge '+(u.role==='admin'?'b-admin':'b-rep-role')+'" style="margin-right:8px">'+(u.role||'rep')+'</span>'
+      +'<div class="user-actions">'
+        +'<button class="btn btn-o bsm" onclick="openUserModal(\''+esc(JSON.stringify(u).replace(/'/g,"\\'"))+'\')">Edit</button>'
+        +'<button class="btn btn-r bsm" onclick="deleteUser(\''+esc(u.id)+'\',\''+esc(u.name)+'\')">Remove</button>'
+      +'</div>'
+      +'</div>';
   }).join('');
 }
 
-function openUserModal(empId, empName, empEmail, empRole) {
-  document.getElementById('modal-user-id').value = '';
-  document.getElementById('modal-empid').value = empId || '';
-  document.getElementById('modal-password').value = '';
-  document.getElementById('modal-title').textContent = 'Grant Commission Access';
+function openUserModal(userJson){
+  document.getElementById('modal-user-id').value='';
+  document.getElementById('modal-name').value='';
+  document.getElementById('modal-password').value='';
+  document.getElementById('modal-empid').value='';
+  document.getElementById('modal-role').value='rep';
+  document.getElementById('modal-title').textContent='Add Rep';
+  document.getElementById('modal-alert').className='alert';
 
-  var initials = (empName || '?').split(' ').map(function(w) { return w[0]; }).slice(0, 2).join('').toUpperCase();
-  document.getElementById('modal-avatar').textContent = initials;
-  document.getElementById('modal-emp-name').textContent = empName || '—';
-  document.getElementById('modal-emp-id').textContent = empId || '—';
-  document.getElementById('modal-alert').className = 'alert';
+  if(userJson){
+    try{
+      var u=typeof userJson==='string'?JSON.parse(userJson):userJson;
+      document.getElementById('modal-user-id').value=u.id||'';
+      document.getElementById('modal-name').value=u.name||'';
+      document.getElementById('modal-password').placeholder='Leave blank to keep current';
+      document.getElementById('modal-empid').value=u.buildopsEmployeeId||'';
+      document.getElementById('modal-role').value=u.role||'rep';
+      document.getElementById('modal-title').textContent='Edit Rep — '+u.name;
+    }catch(e){}
+  }
   document.getElementById('user-modal').classList.add('open');
-  setTimeout(function() { document.getElementById('modal-password').focus(); }, 100);
+  document.getElementById('modal-name').focus();
 }
 
-function closeUserModal() { document.getElementById('user-modal').classList.remove('open'); }
+function closeUserModal(){ document.getElementById('user-modal').classList.remove('open'); }
 
-async function saveUser() {
-  var id = document.getElementById('modal-user-id').value;
-  var name = document.getElementById('modal-emp-name').textContent.trim();
-  var pw = document.getElementById('modal-password').value;
-  var eid = document.getElementById('modal-empid').value;
+async function saveUser(){
+  var id  = document.getElementById('modal-user-id').value;
+  var name= document.getElementById('modal-name').value.trim();
+  var pw  = document.getElementById('modal-password').value;
+  var eid = document.getElementById('modal-empid').value.trim();
+  var role= document.getElementById('modal-role').value;
 
-  if (!name || name === '—') { showModalAlert('aerr', 'No employee selected.'); return; }
-  if (!pw) { showModalAlert('aerr', 'Password is required.'); return; }
+  if(!name){ showModalAlert('err','Name is required.'); return; }
+  if(!id&&!pw){ showModalAlert('err','Password is required for new reps.'); return; }
 
-  var user = { name: name, buildopsEmployeeId: eid, role: 'rep', active: true, password: pw };
-  if (id) user.id = id;
+  var user={name:name,buildopsEmployeeId:eid,role:role,active:true};
+  if(id) user.id=id;
+  if(pw) user.password=pw;
 
-  try {
-    var res = await fetch(commBase(), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': SESSION.password || '' },
-      body: JSON.stringify({ action: 'saveUser', user: user })
+  try{
+    var res=await fetch(commBase(),{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Admin-Password':SESSION.password},
+      body:JSON.stringify({action:'saveUser',user:user})
     });
-    var d = await res.json();
-    if (!res.ok) throw new Error(d.error || 'Save failed');
+    var d=await res.json();
+    if(!res.ok)throw new Error(d.error||'Save failed');
     closeUserModal();
     loadUsers();
-    if (allBuildOpsEmployees.length) renderEmployeeList(allBuildOpsEmployees);
-  } catch (err) {
-    showModalAlert('aerr', err.message);
+  }catch(err){
+    showModalAlert('err',err.message);
   }
 }
 
-async function deleteUser(userId, name) {
-  if (!confirm('Remove ' + name + '?\n\nThey will no longer be able to log in.')) return;
-  try {
-    var res = await fetch(commBase(), {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': SESSION.password },
-      body: JSON.stringify({ action: 'deleteUser', userId: userId })
+async function deleteUser(userId,name){
+  if(!confirm('Remove '+name+'?\n\nThey will no longer be able to log in.'))return;
+  try{
+    var res=await fetch(commBase(),{
+      method:'DELETE',
+      headers:{'Content-Type':'application/json','X-Admin-Password':SESSION.password},
+      body:JSON.stringify({action:'deleteUser',userId:userId})
     });
-    if (!res.ok) throw new Error('Delete failed');
+    if(!res.ok)throw new Error('Delete failed');
     loadUsers();
-  } catch (err) {
-    alert('Error: ' + err.message);
+  }catch(err){
+    alert('Error: '+err.message);
   }
+}
+
+function showModalAlert(type,msg){
+  var el=document.getElementById('modal-alert');
+  el.className='alert a'+type+' show';
+  el.textContent=msg;
 }
 
 // ── RATES ─────────────────────────────────────────────────
-async function loadRatesFromServer() {
-  try {
-    var res = await fetch(commBase() + '?action=rates');
-    var d = await res.json();
-    if (d.rates) {
-      // Normalize: accept both cbDays and clawbackDays
-      RATES.house = parseFloat(d.rates.house) || 3;
-      RATES.rep = parseFloat(d.rates.rep) || 5;
-      RATES.none = parseFloat(d.rates.none || d.rates.rep) || 5;
-      RATES.cbDays = parseInt(d.rates.cbDays || d.rates.clawbackDays) || 90;
-      if (document.getElementById('rate-house')) {
-        document.getElementById('rate-house').value = RATES.house;
-        document.getElementById('rate-rep').value = RATES.rep;
-        document.getElementById('rate-none').value = RATES.none;
-        document.getElementById('rate-cbd').value = RATES.cbDays;
-      }
+async function loadRatesFromServer(){
+  try{
+    var res=await fetch(commBase()+'?action=rates',{headers:{'X-Admin-Password':SESSION.password}});
+    var d=await res.json();
+    if(d.rates){
+      RATES=Object.assign(RATES,d.rates);
+      document.getElementById('rate-house').value=RATES.house;
+      document.getElementById('rate-rep').value=RATES.rep;
+      document.getElementById('rate-none').value=RATES.none||RATES.rep;
+      document.getElementById('rate-cbd').value=RATES.cbDays||90;
     }
-  } catch (e) { console.warn('Could not load rates:', e.message); }
+  }catch(e){ console.warn('Could not load rates:',e.message); }
   updateCalc();
 }
 
-async function saveRates() {
-  RATES = {
-    house: parseFloat(document.getElementById('rate-house').value) || 3,
-    rep: parseFloat(document.getElementById('rate-rep').value) || 5,
-    none: parseFloat(document.getElementById('rate-none').value) || 5,
-    cbDays: parseInt(document.getElementById('rate-cbd').value) || 90,
+async function saveRates(){
+  RATES={
+    house:  parseFloat(document.getElementById('rate-house').value)||3,
+    rep:    parseFloat(document.getElementById('rate-rep').value)||5,
+    none:   parseFloat(document.getElementById('rate-none').value)||5,
+    cbDays: parseInt(document.getElementById('rate-cbd').value)||90,
   };
-  try {
-    var res = await fetch(commBase(), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': SESSION.password },
-      body: JSON.stringify({ action: 'saveRates', rates: RATES })
+  try{
+    var res=await fetch(commBase(),{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Admin-Password':SESSION.password},
+      body:JSON.stringify({action:'saveRates',rates:RATES})
     });
-    if (!res.ok) throw new Error('Save failed');
-    showA('rates-alert', 'aok', '✓ Rates saved. Refresh data to apply.');
-    if (enriched.length) { enrich(); renderDash(); }
-  } catch (err) {
-    showA('rates-alert', 'aerr', 'Error: ' + err.message);
+    if(!res.ok)throw new Error('Save failed');
+    showA('rates-alert','aok','✓ Rates saved. Refresh data to apply.');
+    if(enriched.length){enrich();renderDash();}
+  }catch(err){
+    showA('rates-alert','aerr','Error: '+err.message);
   }
   updateCalc();
 }
 
-function updateCalc() {
-  var amt = parseFloat(document.getElementById('calc-amt').value) || 0;
-  var tag = document.getElementById('calc-tag').value;
-  var rh = parseFloat(document.getElementById('rate-house').value) || RATES.house;
-  var rr = parseFloat(document.getElementById('rate-rep').value) || RATES.rep;
-  var rn = parseFloat(document.getElementById('rate-none').value) || RATES.none || rr;
-  var rate = tag === 'house' ? rh : tag === 'rep' ? rr : rn;
-  document.getElementById('calc-rate').textContent = rate + '%';
-  document.getElementById('calc-comm').textContent = '$' + Math.round(amt * rate / 100).toLocaleString();
-  document.getElementById('calc-net').textContent = '$' + Math.round(amt * (1 - rate / 100)).toLocaleString();
+function updateCalc(){
+  var amt=parseFloat(document.getElementById('calc-amt').value)||0;
+  var tag=document.getElementById('calc-tag').value;
+  var rh=parseFloat(document.getElementById('rate-house').value)||RATES.house;
+  var rr=parseFloat(document.getElementById('rate-rep').value)||RATES.rep;
+  var rn=parseFloat(document.getElementById('rate-none').value)||RATES.none||rr;
+  var rate=tag==='house'?rh:tag==='rep'?rr:rn;
+  document.getElementById('calc-rate').textContent=rate+'%';
+  document.getElementById('calc-comm').textContent='$'+Math.round(amt*rate/100).toLocaleString();
+  document.getElementById('calc-net').textContent='$'+Math.round(amt*(1-rate/100)).toLocaleString();
+}
+['rate-house','rate-rep','rate-none'].forEach(function(id){document.getElementById(id).addEventListener('input',updateCalc);});
+
+function saveConfig(){
+  var url=document.getElementById('site-url').value.trim();
+  SITE_URL=url;
+  localStorage.setItem('cms-site-url',url);
+  var eq=document.getElementById('site-url-quick'); if(eq) eq.value=url;
+  showA('config-alert','aok','✓ Saved. Reload data to apply new URL.');
 }
 
-function saveConfig() {
-  var url = document.getElementById('site-url').value.trim();
-  SITE_URL = url;
-  localStorage.setItem('cms-site-url', url);
-  showA('config-alert', 'aok', '✓ Saved. Reload data to apply new URL.');
-}
-
-// ── CSV EXPORT ────────────────────────────────────────────
-function exportCSV() {
-  var rows = getFiltered();
-  if (!rows.length) { alert('No data to export.'); return; }
-  var isAdmin = SESSION && SESSION.role === 'admin';
-  var H = ['Job #', 'Customer', 'Tag'];
-  if (isAdmin) H.push('Account Manager');
-  H = H.concat(['Complete', 'Invoice #', 'Issue Date', 'Subtotal', 'Rate %', 'Commission $', 'Status', 'Days Open', 'Clawback']);
-  var lines = [H.join(',')];
-  rows.forEach(function(r) {
-    var row = [csvQ(r.jobNumber), csvQ(r.custName), csvQ(r.tagLabel)];
-    if (isAdmin) row.push(csvQ(r.repName));
-    row = row.concat([
-      r.isComplete ? 'Yes' : 'No', csvQ(r.invNumber),
-      r.issuedDate ? r.issuedDate.toISOString().slice(0, 10) : '',
-      r.subtotal.toFixed(2), r.rate, r.commission.toFixed(2),
-      r.commStatus, r.daysSince, r.isClawback ? 'YES' : ''
+// ── CSV ───────────────────────────────────────────────────
+function exportCSV(){
+  var rows=getFiltered();
+  if(!rows.length){alert('No data to export.');return;}
+  var isAdmin=SESSION&&SESSION.role==='admin';
+  var H=['Job #','Customer','Tag'];
+  if(isAdmin)H.push('Account Manager');
+  H=H.concat(['Complete','Invoice #','Issue Date','Subtotal','Rate %','Commission $','Status','Days Open','Clawback']);
+  var lines=[H.join(',')];
+  rows.forEach(function(r){
+    var row=[csvQ(r.jobNumber),csvQ(r.custName),csvQ(r.tagLabel)];
+    if(isAdmin)row.push(csvQ(r.repName));
+    row=row.concat([
+      r.isComplete?'Yes':'No',csvQ(r.invNumber),
+      r.issuedDate?r.issuedDate.toISOString().slice(0,10):'',
+      r.subtotal.toFixed(2),r.rate,r.commission.toFixed(2),
+      r.commStatus,r.daysSince,r.isClawback?'YES':''
     ]);
     lines.push(row.join(','));
   });
-  var blob = new Blob([lines.join('\n')], { type: 'text/csv' });
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'cms-commission-' + (SESSION.role === 'rep' ? SESSION.name.replace(/\s/g, '-') + '-' : '')
-    + document.getElementById('period-sel').value + '-' + new Date().toISOString().slice(0, 10) + '.csv';
+  var blob=new Blob([lines.join('\n')],{type:'text/csv'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='cms-commission-'+(SESSION.role==='rep'?SESSION.name.replace(/\s/g,'-')+'-':'')
+    +document.getElementById('period-sel').value+'-'+new Date().toISOString().slice(0,10)+'.csv';
   a.click();
 }
 
 // ── API TESTER ────────────────────────────────────────────
-var EPS = [
-  { l: 'Jobs (1)', p: '/v1/jobs?page=0&page_size=1', d: 'Inspect job fields' },
-  { l: 'Jobs (5)', p: '/v1/jobs?page=0&page_size=5', d: 'Latest 5 jobs' },
-  { l: 'Invoices (1)', p: '/v1/invoices?page=0&page_size=1', d: 'Inspect invoice fields' },
-  { l: 'Invoices posted', p: '/v1/invoices?page=0&page_size=3&status=posted', d: 'Unpaid invoices' },
-  { l: 'Invoices closed', p: '/v1/invoices?page=0&page_size=3&status=closed', d: 'Paid invoices' },
-  { l: 'Employees', p: '/v1/employees?page=0&page_size=50', d: 'All reps — find employee IDs' },
-  { l: 'Customers (5)', p: '/v1/customers?page=0&page_size=5', d: 'Check tag structure' },
-  { l: 'Customer tags', p: '/v1/settings/custom-fields/customer-tags', d: 'Tag definitions' },
+var EPS=[
+  {l:'Jobs (1)',p:'/v1/jobs?page=0&page_size=1',d:'Inspect job fields'},
+  {l:'Jobs (5)',p:'/v1/jobs?page=0&page_size=5',d:'Latest 5 jobs'},
+  {l:'Invoices (1)',p:'/v1/invoices?page=0&page_size=1',d:'Inspect invoice fields'},
+  {l:'Invoices posted',p:'/v1/invoices?page=0&page_size=3&status=posted',d:'Unpaid invoices'},
+  {l:'Invoices closed',p:'/v1/invoices?page=0&page_size=3&status=closed',d:'Paid invoices'},
+  {l:'Employees',p:'/v1/employees?page=0&page_size=50',d:'All reps — find employee IDs'},
+  {l:'Customers (5)',p:'/v1/customers?page=0&page_size=5',d:'Check tag structure'},
+  {l:'Customer tags',p:'/v1/settings/custom-fields/customer-tags',d:'Tag definitions'},
 ];
 
-function buildEps() {
-  document.getElementById('ep-grid').innerHTML = EPS.map(function(e, i) {
-    return '<div class="ep" data-i="' + i + '" onclick="runEp(' + i + ')">'
-      + '<div class="ep-m">GET</div>'
-      + '<div class="ep-p">' + esc(e.p.split('?')[0]) + '</div>'
-      + '<div class="ep-d">' + esc(e.d) + '</div></div>';
+function buildEps(){
+  document.getElementById('ep-grid').innerHTML=EPS.map(function(e,i){
+    return'<div class="ep" data-i="'+i+'" onclick="runEp('+i+')">'
+      +'<div class="ep-m">GET</div>'
+      +'<div class="ep-p">'+esc(e.p.split('?')[0])+'</div>'
+      +'<div class="ep-d">'+esc(e.d)+'</div>'
+      +'</div>';
   }).join('');
 }
-
-async function runEp(i) {
-  document.querySelectorAll('.ep').forEach(function(el, j) { el.classList.toggle('on', j === i); });
-  document.getElementById('custom-ep').value = EPS[i].p;
+async function runEp(i){
+  document.querySelectorAll('.ep').forEach(function(el,j){el.classList.toggle('on',j===i);});
+  document.getElementById('custom-ep').value=EPS[i].p;
   await runReq(EPS[i].p);
 }
-
-async function runCustom() {
-  var p = document.getElementById('custom-ep').value.trim();
-  if (!p) return;
-  document.querySelectorAll('.ep').forEach(function(el) { el.classList.remove('on'); });
+async function runCustom(){
+  var p=document.getElementById('custom-ep').value.trim();
+  if(!p)return;
+  document.querySelectorAll('.ep').forEach(function(el){el.classList.remove('on');});
   await runReq(p);
 }
-
-async function runReq(path) {
-  var box = document.getElementById('res-box'), meta = document.getElementById('res-meta');
-  box.textContent = 'Loading…'; meta.textContent = '';
-  var t0 = Date.now();
-  try {
-    var d = await callProxy(path);
-    var elapsed = Date.now() - t0;
-    var cnt = (d.totalCount || (d.query && d.query.totalCount) || '—');
-    meta.innerHTML = '<span style="color:var(--green);font-weight:600">200</span> ' + elapsed + 'ms total:' + cnt;
-    var pretty = JSON.stringify(d, null, 2)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/"([^"]+)":/g, '<span style="color:#7eb8f7">"$1"</span>:')
-      .replace(/: "([^"]*)"/g, ': <span style="color:#a8d8a0">"$1"</span>')
-      .replace(/: (true|false|null)/g, ': <span style="color:#f5a97f">$1</span>')
-      .replace(/: (-?\d+\.?\d*)/g, ': <span style="color:#ffd580">$1</span>');
-    box.innerHTML = pretty;
-  } catch (err) {
-    meta.innerHTML = '<span style="color:var(--red)">Error</span>';
-    box.textContent = err.message;
+async function runReq(path){
+  var box=document.getElementById('res-box'),meta=document.getElementById('res-meta');
+  box.textContent='Loading…';meta.textContent='';
+  var t0=Date.now();
+  try{
+    var d=await callProxy(path);
+    var elapsed=Date.now()-t0;
+    var cnt=(d.totalCount||d.query&&d.query.totalCount||'—');
+    meta.innerHTML='<span style="color:var(--green);font-weight:600">200</span> '+elapsed+'ms total:'+cnt;
+    var pretty=JSON.stringify(d,null,2)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"([^"]+)":/g,'<span style="color:#7eb8f7">"$1"</span>:')
+      .replace(/: "([^"]*)"/g,': <span style="color:#a8d8a0">"$1"</span>')
+      .replace(/: (true|false|null)/g,': <span style="color:#f5a97f">$1</span>')
+      .replace(/: (-?\d+\.?\d*)/g,': <span style="color:#ffd580">$1</span>');
+    box.innerHTML=pretty;
+  }catch(err){
+    meta.innerHTML='<span style="color:var(--red)">Error</span>';
+    box.textContent=err.message;
   }
+}
+
+// ── UTILS ─────────────────────────────────────────────────
+function fmt(n){return'$'+Math.round(n||0).toLocaleString('en-US');}
+function fd(d){if(!d)return'—';if(d instanceof Date&&!isNaN(d))return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});return'—';}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function csvQ(s){return'"'+String(s||'').replace(/"/g,'""')+'"';}
+function cap(s){return s.replace(/\b\w/g,function(c){return c.toUpperCase();});}
+function showA(id,cls,msg){var el=document.getElementById(id);el.className='alert '+cls+' show';el.textContent=msg;}
+function showDashLoading(msg){document.getElementById('dash-body').innerHTML='<div class="empty"><div class="spin dk"></div><p>'+esc(msg)+'</p></div>';}
+function kpi(l,v,n,cls){return'<div class="kpi"><div class="kpi-l">'+l+'</div><div class="kpi-v '+cls+'">'+v+'</div><div class="kpi-n">'+n+'</div></div>';}
+function tBadge(r){var c=r.tagType==='house'?'b-house':r.tagType==='rep'?'b-rep':'b-none';return'<span class="badge '+c+'">'+esc(r.tagLabel)+'</span>';}
+function sBadge(r){
+  if(!r.invoiced)return'<span class="badge b-none">Not Invoiced</span>';
+  if(r.isClawback)return'<span class="badge b-cb">Clawback</span>';
+  if(r.isWarn)return'<span class="badge b-warn">Warning</span>';
+  if(r.isPaid)return'<span class="badge b-paid">Paid</span>';
+  return'<span class="badge b-pend">Pending</span>';
 }
 
 // ── PAYOUTS ───────────────────────────────────────────────
-function buildMonthSelector() {
+var allPayouts = [];
+
+function buildMonthSelector(){
   var sel = document.getElementById('payout-month');
-  if (!sel) return;
+  if(!sel) return;
   var months = [];
   var now = new Date();
-  for (var i = 0; i < 12; i++) {
+  for(var i = 0; i < 12; i++){
     var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    var key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
-    var label = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-    months.push({ key: key, label: label });
+    var key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    var label = d.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+    months.push({key:key, label:label});
   }
-  sel.innerHTML = months.map(function(m) { return '<option value="' + m.key + '">' + m.label + '</option>'; }).join('');
+  sel.innerHTML = months.map(function(m){
+    return '<option value="'+m.key+'">'+m.label+'</option>';
+  }).join('');
 }
 
-async function loadPayouts() {
+async function loadPayouts(){
   buildMonthSelector();
-  try {
-    var res = await fetch(commBase() + '?action=payouts', {
-      headers: { 'X-Admin-Password': SESSION.password }
+  try{
+    var res = await fetch(commBase()+'?action=payouts', {
+      headers:{'X-Admin-Password': SESSION.password}
     });
     var d = await res.json();
-    allPayouts = (d.payouts || []).filter(function(p) { return !p.voided; });
+    allPayouts = (d.payouts||[]).filter(function(p){return !p.voided;});
     renderPayoutHistory();
     renderPayoutPanel();
-  } catch (err) {
+  }catch(err){
     console.warn('Payouts load error:', err.message);
     allPayouts = [];
     renderPayoutHistory();
@@ -1598,435 +1603,320 @@ async function loadPayouts() {
   }
 }
 
-function getMonthInvoices(monthKey) {
+function getMonthInvoices(monthKey){
+  // Get all enriched records for the selected month that have been invoiced
   var parts = monthKey.split('-');
   var year = parseInt(parts[0]), month = parseInt(parts[1]) - 1;
-  return (enriched || []).filter(function(r) {
-    if (!r.invoiced || !r.issuedDate) return false;
+  return (enriched||[]).filter(function(r){
+    if(!r.invoiced || !r.issuedDate) return false;
     return r.issuedDate.getFullYear() === year && r.issuedDate.getMonth() === month;
   });
 }
 
-function renderPayoutPanel() {
+function renderPayoutPanel(){
   var sel = document.getElementById('payout-month');
-  if (!sel) return;
+  if(!sel) return;
   var monthKey = sel.value;
-  if (!monthKey) return;
+  if(!monthKey) return;
   var monthLabel = sel.options[sel.selectedIndex].text;
   var monthInvs = getMonthInvoices(monthKey);
 
+  // Group by rep
   var byRep = {};
-  monthInvs.forEach(function(r) {
-    if (!r.repId) return;
-    if (!byRep[r.repId]) byRep[r.repId] = { repId: r.repId, repName: r.repName, invoices: [], subtotal: 0, commission: 0, cbRisk: 0 };
+  monthInvs.forEach(function(r){
+    if(!r.repId) return;
+    if(!byRep[r.repId]) byRep[r.repId] = {
+      repId: r.repId, repName: r.repName,
+      invoices: [], subtotal: 0, commission: 0, cbRisk: 0
+    };
     byRep[r.repId].invoices.push(r.invNumber);
-    byRep[r.repId].subtotal += r.subtotal;
+    byRep[r.repId].subtotal  += r.subtotal;
     byRep[r.repId].commission += r.commission;
-    if (r.isClawback) byRep[r.repId].cbRisk += r.commission;
+    if(r.isClawback) byRep[r.repId].cbRisk += r.commission;
   });
 
   var repList = Object.values(byRep);
-  var totalComm = repList.reduce(function(s, r) { return s + r.commission; }, 0);
+  var totalComm = repList.reduce(function(s,r){return s+r.commission;},0);
 
-  if (!repList.length) {
+  if(!repList.length){
     document.getElementById('payout-panel').innerHTML =
       '<div style="padding:32px;text-align:center;color:var(--faint);font-size:13px">'
-      + 'No invoiced jobs found for ' + monthLabel + '.'
-      + '<br><span style="font-size:11px">Load data first if this seems wrong.</span></div>';
+      +'No invoiced jobs found for '+monthLabel+'.'
+      +'<br><span style="font-size:11px">Load live data first if this seems wrong.</span></div>';
     return;
   }
 
-  // Build payout queue for this render cycle
-  var payoutQueue = [];
-
   var html = '<div style="padding:14px 16px">';
-  html += '<div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">';
-  html += '<div style="background:var(--surface2);border-radius:var(--r2);padding:10px 14px;flex:1">';
-  html += '<div class="kpi-l">Total commission</div>';
-  html += '<div style="font-family:monospace;font-size:22px;font-weight:500;color:var(--green)">' + fmt(totalComm) + '</div>';
-  html += '<div class="kpi-n">' + monthLabel + '</div></div>';
-  html += '<div style="background:var(--surface2);border-radius:var(--r2);padding:10px 14px;flex:1">';
-  html += '<div class="kpi-l">Invoices</div>';
-  html += '<div style="font-family:monospace;font-size:22px;font-weight:500;color:var(--text)">' + monthInvs.length + '</div>';
-  html += '<div class="kpi-n">across ' + repList.length + ' rep' + (repList.length > 1 ? 's' : '') + '</div></div></div>';
 
-  repList.sort(function(a, b) { return b.commission - a.commission; }).forEach(function(rep) {
-    var alreadyPaid = allPayouts.find(function(p) { return p.repId === rep.repId && p.month === monthKey; });
-    var initials = rep.repName.split(' ').map(function(w) { return w[0]; }).slice(0, 2).join('').toUpperCase();
-    html += '<div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--r2);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">';
-    html += '<div style="width:36px;height:36px;border-radius:50%;background:var(--blue-s);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--blue);flex-shrink:0;border:1.5px solid var(--blue-b)">' + esc(initials) + '</div>';
+  // Summary strip
+  html += '<div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">';
+  html += '<div style="background:var(--bg);border-radius:var(--r2);padding:10px 14px;flex:1">';
+  html += '<div class="kpi-l">Total commission</div>';
+  html += '<div style="font-family:monospace;font-size:22px;font-weight:500;color:var(--green)">'+fmt(totalComm)+'</div>';
+  html += '<div class="kpi-n">'+monthLabel+'</div></div>';
+  html += '<div style="background:var(--bg);border-radius:var(--r2);padding:10px 14px;flex:1">';
+  html += '<div class="kpi-l">Invoices</div>';
+  html += '<div style="font-family:monospace;font-size:22px;font-weight:500;color:var(--text)">'+monthInvs.length+'</div>';
+  html += '<div class="kpi-n">across '+repList.length+' rep'+(repList.length>1?'s':'')+'</div></div>';
+  html += '</div>';
+
+  // Per-rep rows
+  repList.sort(function(a,b){return b.commission-a.commission;}).forEach(function(rep){
+    var alreadyPaid = allPayouts.find(function(p){return p.repId===rep.repId&&p.month===monthKey;});
+    html += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">';
+    // Avatar
+    var initials = rep.repName.split(' ').map(function(w){return w[0];}).slice(0,2).join('').toUpperCase();
+    html += '<div style="width:36px;height:36px;border-radius:50%;background:var(--accent-s);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--accent);flex-shrink:0">'+esc(initials)+'</div>';
     html += '<div style="flex:1;min-width:0">';
-    html += '<div style="font-size:13px;font-weight:700;color:var(--text)">' + esc(rep.repName) + '</div>';
-    html += '<div style="font-size:11px;color:var(--faint);margin-top:2px">' + rep.invoices.length + ' invoice' + (rep.invoices.length > 1 ? 's' : '') + ' · $' + Math.round(rep.subtotal).toLocaleString() + ' subtotal</div>';
-    if (rep.cbRisk > 0) html += '<div style="font-size:11px;color:var(--red);margin-top:2px">⚠ ' + fmt(rep.cbRisk) + ' clawback risk</div>';
+    html += '<div style="font-size:13px;font-weight:700;color:var(--text)">'+esc(rep.repName)+'</div>';
+    html += '<div style="font-size:11px;color:var(--faint);margin-top:2px">'+rep.invoices.length+' invoice'+(rep.invoices.length>1?'s':'')+' · $'+Math.round(rep.subtotal).toLocaleString()+' subtotal</div>';
+    if(rep.cbRisk > 0){
+      html += '<div style="font-size:11px;color:var(--red);margin-top:2px">⚠ '+fmt(rep.cbRisk)+' clawback risk included</div>';
+    }
     html += '</div>';
-    html += '<div style="text-align:right;flex-shrink:0"><div style="font-family:monospace;font-size:20px;font-weight:500;color:var(--green)">' + fmt(rep.commission) + '</div><div style="font-size:10px;color:var(--faint);margin-top:2px">commission</div></div>';
-    if (alreadyPaid) {
-      html += '<span class="badge b-paid" style="flex-shrink:0">Paid ' + new Date(alreadyPaid.paidDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + '</span>';
+    html += '<div style="text-align:right;flex-shrink:0">';
+    html += '<div style="font-family:monospace;font-size:20px;font-weight:500;color:var(--green)">'+fmt(rep.commission)+'</div>';
+    html += '<div style="font-size:10px;color:var(--faint);margin-top:2px">commission</div>';
+    html += '</div>';
+    if(alreadyPaid){
+      html += '<span class="badge b-paid" style="flex-shrink:0">Paid '+new Date(alreadyPaid.paidDate).toLocaleDateString('en-US',{month:'short',day:'numeric'})+'</span>';
     } else {
-      var idx = payoutQueue.length;
-      payoutQueue.push({ repId: rep.repId, repName: rep.repName, month: monthKey, monthLabel: monthLabel, amount: rep.commission, invoiceNums: rep.invoices });
-      // Check review status
-      var review = allReviews.find(function(r) { return r.repId === rep.repId && r.month === monthKey; });
-      if (!review) {
-        html += '<button class="btn btn-o bsm" style="flex-shrink:0" onclick="submitForReview(' + idx + ')">'
-          + '<svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
-          + ' Submit for Review</button>';
-      } else if (review.status === 'pending') {
-        html += '<span class="badge b-warn" style="flex-shrink:0;margin-right:6px">Pending Review</span>';
-        html += '<button class="btn btn-g bsm" style="flex-shrink:0" onclick="approveReview(\'' + review.id + '\')">Approve</button>';
-        html += '<button class="btn btn-r bsm" style="flex-shrink:0;margin-left:4px" onclick="rejectReview(\'' + review.id + '\')">Reject</button>';
-      } else if (review.status === 'approved') {
-        html += '<span class="badge b-paid" style="flex-shrink:0;margin-right:6px;background:var(--green-s);color:var(--green);border-color:var(--green-b)">Approved ✓</span>';
-        html += '<button class="btn btn-g bsm" style="flex-shrink:0" onclick="doRecordPayout(' + idx + ')">'
-          + '<svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>'
-          + ' Record Payout</button>';
-      } else if (review.status === 'rejected') {
-        html += '<span class="badge b-cb" style="flex-shrink:0;margin-right:6px">Rejected</span>';
-        html += '<button class="btn btn-o bsm" style="flex-shrink:0" onclick="submitForReview(' + idx + ')">Resubmit</button>';
-      } else if (review.status === 'acknowledged') {
-        html += '<span class="badge b-pend" style="flex-shrink:0;margin-right:6px">Rep Acknowledged</span>';
-        html += '<button class="btn btn-o bsm" style="flex-shrink:0" onclick="submitForReview(' + idx + ')">Submit for Review</button>';
-      }
-      // Show rep acknowledgment status
-      if (review && review.repAcknowledged) {
-        html += '<span style="font-size:9px;color:var(--green);margin-left:6px;flex-shrink:0" title="Rep confirmed ' + (review.repAcknowledgedDate||'').slice(0,10) + '">Rep ✓</span>';
-      }
+      // Store payout data on element via data attribute index
+      var _pi = (window._payoutQueue = window._payoutQueue||[]).length;
+      window._payoutQueue.push({repId:rep.repId,repName:rep.repName,month:monthKey,monthLabel:monthLabel,amount:rep.commission,invoiceNums:rep.invoices});
+      html += '<button class="btn btn-g bsm" style="flex-shrink:0" onclick="recordPayoutQueued('+_pi+')">'
+        +'<svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>'
+        +'Record Payout</button>';
     }
     html += '</div>';
   });
 
   html += '</div>';
   document.getElementById('payout-panel').innerHTML = html;
-
-  // Store queue on window for button onclick
-  window._payoutQueue = payoutQueue;
 }
 
-function doRecordPayout(idx) {
-  var d = window._payoutQueue && window._payoutQueue[idx];
-  if (!d) return;
-  recordPayout(d.repId, d.repName, d.month, d.monthLabel, d.amount, d.invoiceNums);
+function recordPayoutQueued(idx){
+  var d=window._payoutQueue&&window._payoutQueue[idx];
+  if(!d)return;
+  recordPayout(d.repId,d.repName,d.month,d.monthLabel,d.amount,d.invoiceNums);
 }
 
-async function recordPayout(repId, repName, month, monthLabel, amount, invoiceNums) {
-  if (!confirm('Record payout of ' + fmt(amount) + ' to ' + repName + ' for ' + monthLabel + '?\n\nThis cannot be undone (only voided if needed).')) return;
+async function recordPayout(repId, repName, month, monthLabel, amount, invoiceNums){
+  if(!confirm('Record payout of '+fmt(amount)+' to '+repName+' for '+monthLabel+'?\n\nThis cannot be undone (only voided if needed).')) return;
+
   var note = prompt('Optional note (e.g. check #, ACH reference):', '') || '';
-  try {
+
+  try{
     var res = await fetch(commBase(), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': SESSION.password },
-      body: JSON.stringify({ action: 'recordPayout', payout: { repId: repId, repName: repName, month: month, monthLabel: monthLabel, amount: amount, invoiceNums: invoiceNums, note: note } })
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Admin-Password': SESSION.password},
+      body: JSON.stringify({
+        action:'recordPayout',
+        payout:{ repId, repName, month, monthLabel, amount, invoiceNums, note }
+      })
     });
     var d = await res.json();
-    if (!res.ok) throw new Error(d.error || 'Failed');
+    if(!res.ok) throw new Error(d.error||'Failed');
     await loadPayouts();
-    await loadReviews();
-  } catch (err) {
-    alert('Error: ' + err.message);
+  }catch(err){
+    alert('Error: '+err.message);
   }
 }
 
-function renderPayoutHistory() {
+function voidPayoutQueued(idx){
+  var d=window._voidQueue&&window._voidQueue[idx];
+  if(!d)return;
+  voidPayout(d.id,d.repName,d.monthLabel,d.amount);
+}
+
+async function voidPayout(payoutId, repName, monthLabel, amount){
+  if(!confirm('Void payout of '+fmt(amount)+' to '+repName+' for '+monthLabel+'?\n\nThe payout will be marked as voided.')) return;
+  try{
+    var res = await fetch(commBase(), {
+      method:'DELETE',
+      headers:{'Content-Type':'application/json','X-Admin-Password': SESSION.password},
+      body: JSON.stringify({action:'voidPayout', payoutId})
+    });
+    if(!res.ok) throw new Error('Void failed');
+    await loadPayouts();
+  }catch(err){
+    alert('Error: '+err.message);
+  }
+}
+
+function renderPayoutHistory(){
   var count = allPayouts.length;
   var el = document.getElementById('payout-history-count');
-  if (el) el.textContent = count;
+  if(el) el.textContent = count;
   var tbody = document.getElementById('payout-history-body');
-  if (!tbody) return;
-  if (!count) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--faint);padding:24px">No payouts recorded yet</td></tr>';
+  if(!tbody) return;
+  if(!count){
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--faint);padding:24px">No payouts recorded yet</td></tr>';
     return;
   }
-
-  // Build void queue for this render
-  var voidQueue = [];
-
   tbody.innerHTML = allPayouts
-    .sort(function(a, b) { return new Date(b.paidDate) - new Date(a.paidDate); })
-    .map(function(p) {
-      var cbWarning = (enriched || []).filter(function(r) {
-        return r.isClawback && (p.invoiceNums || []).includes(r.invNumber);
+    .sort(function(a,b){return new Date(b.paidDate)-new Date(a.paidDate);})
+    .map(function(p){
+      var cbWarning = (enriched||[]).filter(function(r){
+        return r.isClawback && (p.invoiceNums||[]).includes(r.invNumber);
       });
-      var vi = voidQueue.length;
-      voidQueue.push({ id: p.id, repName: p.repName, monthLabel: p.monthLabel || p.month, amount: p.amount });
       return '<tr>'
-        + '<td class="nm">' + esc(p.monthLabel || p.month) + '</td>'
-        + '<td>' + esc(p.repName) + '</td>'
-        + '<td class="n">' + (p.invoiceNums || []).length + '</td>'
-        + '<td class="n" style="color:var(--green);font-weight:700">' + fmt(p.amount) + '</td>'
-        + '<td>' + new Date(p.paidDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + '</td>'
-        + '<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;color:var(--faint);font-size:11px">' + esc(p.note || '—') + '</td>'
-        + '<td>'
-        + (cbWarning.length ? '<span class="badge b-cb" style="margin-right:6px">' + cbWarning.length + ' clawback</span>' : '')
-        + '<button class="btn btn-o bsm" style="color:var(--red);border-color:var(--red-b);font-size:10px" onclick="doVoidPayout(' + vi + ')">Void</button>'
-        + '</td></tr>';
+        +'<td class="nm">'+esc(p.monthLabel||p.month)+'</td>'
+        +'<td>'+esc(p.repName)+'</td>'
+        +'<td class="n">'+(p.invoiceNums||[]).length+'</td>'
+        +'<td class="n">—</td>'
+        +'<td class="n" style="color:var(--green);font-weight:700">'+fmt(p.amount)+'</td>'
+        +'<td>'+new Date(p.paidDate).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+'</td>'
+        +'<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;color:var(--faint);font-size:11px">'+esc(p.note||'—')+'</td>'
+        +'<td>'
+          +(cbWarning.length?'<span class="badge b-cb" style="margin-right:6px">'+cbWarning.length+' clawback</span>':'')
+          +(function(){var _vi=(window._voidQueue=window._voidQueue||[]).length;window._voidQueue.push({id:p.id,repName:p.repName,monthLabel:p.monthLabel||p.month,amount:p.amount});return '<button class="btn btn-o bsm" style="color:var(--red);border-color:var(--red-b);font-size:10px" onclick="voidPayoutQueued('+_vi+')">Void</button>';})()
+        +'</td>'
+        +'</tr>';
     }).join('');
-
-  window._voidQueue = voidQueue;
 }
 
-function doVoidPayout(idx) {
-  var d = window._voidQueue && window._voidQueue[idx];
-  if (!d) return;
-  voidPayout(d.id, d.repName, d.monthLabel, d.amount);
-}
-
-async function voidPayout(payoutId, repName, monthLabel, amount) {
-  if (!confirm('Void payout of ' + fmt(amount) + ' to ' + repName + ' for ' + monthLabel + '?\n\nThe payout will be marked as voided.')) return;
-  try {
-    var res = await fetch(commBase(), {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': SESSION.password },
-      body: JSON.stringify({ action: 'voidPayout', payoutId: payoutId })
-    });
-    if (!res.ok) throw new Error('Void failed');
-    await loadPayouts();
-    await loadReviews();
-  } catch (err) {
-    alert('Error: ' + err.message);
-  }
-}
-
-function exportPayoutCSV() {
-  if (!allPayouts.length) { alert('No payouts to export.'); return; }
-  var H = ['Month', 'Rep', 'Invoices', 'Commission Paid', 'Paid Date', 'Note'];
-  var lines = [H.join(',')];
-  allPayouts.forEach(function(p) {
+function exportPayoutCSV(){
+  if(!allPayouts.length){alert('No payouts to export.');return;}
+  var H=['Month','Rep','Invoices','Commission Paid','Paid Date','Note'];
+  var lines=[H.join(',')];
+  allPayouts.forEach(function(p){
     lines.push([
-      csvQ(p.monthLabel || p.month), csvQ(p.repName),
-      (p.invoiceNums || []).length, p.amount.toFixed(2),
-      new Date(p.paidDate).toISOString().slice(0, 10), csvQ(p.note || '')
+      csvQ(p.monthLabel||p.month), csvQ(p.repName),
+      (p.invoiceNums||[]).length, p.amount.toFixed(2),
+      new Date(p.paidDate).toISOString().slice(0,10), csvQ(p.note||'')
     ].join(','));
   });
-  var blob = new Blob([lines.join('\n')], { type: 'text/csv' });
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'cms-commission-payouts-' + new Date().toISOString().slice(0, 7) + '.csv';
+  var blob=new Blob([lines.join('\n')],{type:'text/csv'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='cms-commission-payouts-'+new Date().toISOString().slice(0,7)+'.csv';
   a.click();
 }
 
 // ── BUILDOPS EMPLOYEE PICKER ──────────────────────────────
 var allBuildOpsEmployees = [];
 
-async function loadBuildOpsEmployees() {
+async function loadBuildOpsEmployees(){
   var btn = document.querySelector('#tab-users .btn-o');
-  if (btn) { btn.innerHTML = '<span class="spin dk"></span> Syncing…'; btn.disabled = true; }
+  if(btn){ btn.innerHTML = '<span class="spin dk"></span> Syncing…'; btn.disabled = true; }
   document.getElementById('emp-list').innerHTML = '<div class="empty"><div class="empty-icon"><div class="spin dk"></div></div><p>Loading employees from BuildOps…</p></div>';
 
-  try {
-    var d = await callProxy('/v1/employees?page=0&page_size=100');
-    allBuildOpsEmployees = (d.items || []).filter(function(e) { return e && e.id && e.firstName; });
-    allBuildOpsEmployees.sort(function(a, b) {
-      return ((a.firstName || '') + (a.lastName || '')).localeCompare((b.firstName || '') + (b.lastName || ''));
+  try{
+    // Load from Blobs cache first
+    var d = await fetch(commBase()+'?action=data&key=employees').then(function(r){return r.json();});
+    var raw = d.items||d||[];
+    var list = Array.isArray(raw) ? raw : [];
+    if(!list.length){
+      try{
+        var pd=await callProxy('/v1/employees?page=0&page_size=200');
+        var pr=pd.items||pd||[];
+        list=Array.isArray(pr)?pr:[];
+      }catch(pe){ console.warn('proxy employees failed:',pe.message); }
+    }
+    allBuildOpsEmployees = list.filter(function(e){ return e && e.id && (e.firstName||e.name||e.username); });
+    allBuildOpsEmployees.sort(function(a,b){
+      return ((a.firstName||'')+(a.lastName||'')).localeCompare((b.firstName||'')+(b.lastName||''));
     });
     document.getElementById('emp-count').textContent = allBuildOpsEmployees.length;
     renderEmployeeList(allBuildOpsEmployees);
-  } catch (err) {
-    document.getElementById('emp-list').innerHTML = '<div class="empty"><p style="color:var(--red)">Error: ' + esc(err.message) + '</p><p style="font-size:11px;margin-top:4px">Make sure live data is loaded and proxy is configured.</p></div>';
+  }catch(err){
+    document.getElementById('emp-list').innerHTML = '<div class="empty"><p style="color:var(--red)">Error: '+esc(err.message)+'</p><p style="font-size:11px;margin-top:4px">Make sure live data is loaded and proxy is configured.</p></div>';
   }
-  if (btn) {
-    btn.innerHTML = '<svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Sync from BuildOps';
-    btn.disabled = false;
-  }
+  if(btn){ btn.innerHTML = '<svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Sync from BuildOps'; btn.disabled = false; }
 }
 
-function filterEmployees() {
+function filterEmployees(){
   var q = document.getElementById('emp-search').value.toLowerCase();
-  var filtered = allBuildOpsEmployees.filter(function(e) {
-    return (e.firstName + ' ' + e.lastName).toLowerCase().includes(q) ||
-      (e.email || '').toLowerCase().includes(q) ||
-      (e.id || '').toLowerCase().includes(q);
+  var filtered = allBuildOpsEmployees.filter(function(e){
+    return (e.firstName+' '+e.lastName).toLowerCase().includes(q) ||
+           (e.email||'').toLowerCase().includes(q) ||
+           (e.id||'').toLowerCase().includes(q);
   });
   renderEmployeeList(filtered);
 }
 
-function renderEmployeeList(emps) {
+function renderEmployeeList(emps){
   var existingIds = new Set();
-  document.querySelectorAll('[data-emp-id]').forEach(function(el) { existingIds.add(el.dataset.empId); });
+  document.querySelectorAll('[data-emp-id]').forEach(function(el){ existingIds.add(el.dataset.empId); });
 
   var list = document.getElementById('emp-list');
-  if (!emps.length) { list.innerHTML = '<div class="empty"><p>No employees found</p></div>'; return; }
+  if(!emps.length){
+    list.innerHTML = '<div class="empty"><p>No employees found</p></div>';
+    return;
+  }
   list.innerHTML = '';
-  emps.forEach(function(e) {
+  emps.forEach(function(e){
     var name = [e.firstName, e.lastName].filter(Boolean).join(' ');
-    var initials = [e.firstName, e.lastName].filter(Boolean).map(function(w) { return w[0]; }).join('').toUpperCase();
-    var role = [e.role || e.jobTitle || e.title || '', e.department || e.departmentName || ''].filter(Boolean).join(' · ');
+    var initials = [e.firstName,e.lastName].filter(Boolean).map(function(w){return w[0];}).join('').toUpperCase();
+    var role = [e.role||e.jobTitle||e.title||'', e.department||e.departmentName||''].filter(Boolean).join(' · ');
     var hasAccess = existingIds.has(e.id);
     var row = document.createElement('div');
     row.className = 'emp-row';
     row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid var(--line)';
-    row.innerHTML = '<div style="width:34px;height:34px;border-radius:50%;background:var(--surface2);border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--muted);flex-shrink:0">' + esc(initials) + '</div>'
-      + '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--text)">' + esc(name) + '</div>'
-      + (role ? '<div style="font-size:11px;color:var(--faint);margin-top:1px">' + esc(role) + '</div>' : '')
-      + '</div>'
-      + (hasAccess ? '<span class="badge b-paid" style="flex-shrink:0">Has Access</span>' : '<span style="font-size:10px;color:var(--blue);font-weight:500;flex-shrink:0">+ Grant Access</span>');
-    row.onclick = (function(eid, ename, email, erole) {
-      return function() { openUserModal(eid, ename, email, erole); };
-    })(e.id, name, e.email || '', role);
+    row.innerHTML = '<div style="width:34px;height:34px;border-radius:50%;background:var(--surface2);border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--muted);flex-shrink:0">'+esc(initials)+'</div>'
+      +'<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--text)">'+esc(name)+'</div>'
+      +(role ? '<div style="font-size:11px;color:var(--faint);margin-top:1px">'+esc(role)+'</div>' : '')
+      +'</div>'
+      +(hasAccess ? '<span class="badge b-paid" style="flex-shrink:0">Has Access</span>' : '<span style="font-size:10px;color:var(--blue);font-weight:500;flex-shrink:0">+ Grant Access</span>');
+    row.onclick = (function(eid,ename,email,erole){
+      return function(){ openUserModal(eid,ename,email,erole,''); };
+    })(e.id, name, e.email||'', role);
     list.appendChild(row);
   });
 }
-// ── REVIEWS & DISPUTES ────────────────────────────────────
-var allReviews = [];
-var allDisputes = [];
 
-async function loadReviews() {
-  try {
-    var headers = {};
-    if (SESSION.role === 'admin') headers['X-Admin-Password'] = SESSION.password;
-    else headers['X-User-Password'] = SESSION.password;
-    var res = await fetch(commBase() + '?action=reviews', { headers: headers });
+// Override openUserModal to accept employee data
+var _origOpenUserModal = openUserModal;
+openUserModal = function(empId, empName, empEmail, empRole, empDept){
+  // If called with no args (old edit flow) fall through
+  if(!empId){ _origOpenUserModal && _origOpenUserModal(); return; }
+
+  // Pre-fill modal with employee info
+  document.getElementById('modal-user-id').value = '';
+  document.getElementById('modal-empid').value = empId;
+  document.getElementById('modal-password').value = '';
+  document.getElementById('modal-title').textContent = 'Grant Commission Access';
+
+  var initials = empName.split(' ').map(function(w){return w[0];}).slice(0,2).join('').toUpperCase();
+  document.getElementById('modal-avatar').textContent = initials;
+  document.getElementById('modal-emp-name').textContent = empName;
+  document.getElementById('modal-emp-id').textContent = empId;
+  document.getElementById('modal-alert').className = 'alert';
+  document.getElementById('user-modal').classList.add('open');
+  setTimeout(function(){ document.getElementById('modal-password').focus(); }, 100);
+};
+
+// Override saveUser to use hidden empid field
+var _origSaveUser = saveUser;
+saveUser = async function(){
+  var id  = document.getElementById('modal-user-id').value;
+  var name = document.getElementById('modal-emp-name').textContent.trim();
+  var pw  = document.getElementById('modal-password').value;
+  var eid = document.getElementById('modal-empid').value;
+
+  if(!name || name === '—'){ showModalAlert('aerr','No employee selected.'); return; }
+  if(!pw){ showModalAlert('aerr','Password is required.'); return; }
+
+  var user = {name:name, buildopsEmployeeId:eid, role:'rep', active:true, password:pw};
+  if(id) user.id = id;
+
+  try{
+    var res = await fetch(commBase(), {
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Admin-Password': SESSION.password||''},
+      body: JSON.stringify({action:'saveUser', user:user})
+    });
     var d = await res.json();
-    allReviews = d.reviews || [];
-  } catch (e) { allReviews = []; }
-}
-
-async function loadDisputes() {
-  try {
-    var headers = {};
-    if (SESSION.role === 'admin') headers['X-Admin-Password'] = SESSION.password;
-    else headers['X-User-Password'] = SESSION.password;
-    var res = await fetch(commBase() + '?action=disputes', { headers: headers });
-    var d = await res.json();
-    allDisputes = d.disputes || [];
-    // Update badge
-    var open = allDisputes.filter(function(d) { return d.status === 'open'; });
-    var badge = document.getElementById('dispute-badge');
-    if (badge) {
-      badge.textContent = open.length;
-      badge.style.display = open.length ? '' : 'none';
-    }
-    var cnt = document.getElementById('dispute-count');
-    if (cnt) cnt.textContent = open.length;
-    renderDisputes();
-  } catch (e) { allDisputes = []; }
-}
-
-function renderDisputes() {
-  var tbody = document.getElementById('disputes-body');
-  if (!tbody) return;
-  var open = allDisputes.filter(function(d) { return d.status === 'open'; });
-  var resolved = allDisputes.filter(function(d) { return d.status === 'resolved'; });
-  var all = open.concat(resolved);
-  if (!all.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--faint);padding:28px">No disputes</td></tr>';
-    return;
+    if(!res.ok) throw new Error(d.error||'Save failed');
+    closeUserModal();
+    loadUsers();
+    // Re-render employee list to update "Has Access" badges
+    if(allBuildOpsEmployees.length) renderEmployeeList(allBuildOpsEmployees);
+  }catch(err){
+    showModalAlert('aerr', err.message);
   }
-  tbody.innerHTML = all.map(function(d) {
-    return '<tr' + (d.status === 'resolved' ? ' style="opacity:.5"' : '') + '>'
-      + '<td>' + new Date(d.createdDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + '</td>'
-      + '<td class="nm">' + esc(d.repName) + '</td>'
-      + '<td>' + esc(d.jobNumber) + '</td>'
-      + '<td>' + esc(d.invoiceNumber || '—') + '</td>'
-      + '<td style="max-width:200px;white-space:normal;font-size:11px;line-height:1.5">' + esc(d.note) + '</td>'
-      + '<td>' + (d.status === 'open' ? '<span class="badge b-warn">Open</span>' : '<span class="badge b-paid">Resolved</span>') + '</td>'
-      + '<td>' + (d.status === 'open' ? '<button class="btn btn-g bsm" style="font-size:10px" onclick="resolveDispute(\'' + d.id + '\')">Resolve</button>' : '<span style="font-size:10px;color:var(--faint)">' + esc(d.resolution || '') + '</span>') + '</td>'
-      + '</tr>';
-  }).join('');
-}
-
-async function submitForReview(idx) {
-  var d = window._payoutQueue && window._payoutQueue[idx];
-  if (!d) return;
-  try {
-    var res = await fetch(commBase(), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': SESSION.password },
-      body: JSON.stringify({
-        action: 'submitReview', repId: d.repId, repName: d.repName,
-        month: d.month, monthLabel: d.monthLabel,
-        totalCommission: d.amount, invoiceCount: d.invoiceNums.length,
-        invoiceNums: d.invoiceNums
-      })
-    });
-    var result = await res.json();
-    if (!res.ok) throw new Error(result.error || 'Failed');
-    await loadReviews();
-    renderPayoutPanel();
-  } catch (err) { alert('Error: ' + err.message); }
-}
-
-async function approveReview(reviewId) {
-  var note = prompt('Approval note (optional):', '') || '';
-  try {
-    var res = await fetch(commBase(), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': SESSION.password },
-      body: JSON.stringify({ action: 'approveReview', reviewId: reviewId, note: note })
-    });
-    var d = await res.json();
-    if (!res.ok) throw new Error(d.error || 'Failed');
-    await loadReviews();
-    renderPayoutPanel();
-  } catch (err) { alert('Error: ' + err.message); }
-}
-
-async function rejectReview(reviewId) {
-  var note = prompt('Reason for rejection:', '');
-  if (note === null) return;
-  try {
-    var res = await fetch(commBase(), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': SESSION.password },
-      body: JSON.stringify({ action: 'rejectReview', reviewId: reviewId, note: note })
-    });
-    var d = await res.json();
-    if (!res.ok) throw new Error(d.error || 'Failed');
-    await loadReviews();
-    renderPayoutPanel();
-  } catch (err) { alert('Error: ' + err.message); }
-}
-
-async function repAcknowledge(month) {
-  if (!confirm('Confirm: you have reviewed your commission detail for this month and it is accurate.')) return;
-  try {
-    var res = await fetch(commBase(), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-User-Password': SESSION.password },
-      body: JSON.stringify({ action: 'repAcknowledge', month: month })
-    });
-    var d = await res.json();
-    if (!res.ok) throw new Error(d.error || 'Failed');
-    await loadReviews();
-    renderDash();
-  } catch (err) { alert('Error: ' + err.message); }
-}
-
-function openDispute(jobId, jobNumber, invoiceNumber) {
-  var note = prompt('Describe the issue with Job ' + jobNumber + ':');
-  if (!note) return;
-  submitDisputeToServer(jobId, jobNumber, invoiceNumber, note);
-}
-
-async function submitDisputeToServer(jobId, jobNumber, invoiceNumber, note) {
-  try {
-    var res = await fetch(commBase(), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-User-Password': SESSION.password },
-      body: JSON.stringify({ action: 'submitDispute', jobId: jobId, jobNumber: jobNumber, invoiceNumber: invoiceNumber, note: note })
-    });
-    var d = await res.json();
-    if (!res.ok) throw new Error(d.error || 'Failed');
-    await loadDisputes();
-    renderDash();
-    alert('Dispute submitted. Admin has been notified.');
-  } catch (err) { alert('Error: ' + err.message); }
-}
-
-async function resolveDispute(disputeId) {
-  var resolution = prompt('Resolution note:');
-  if (resolution === null) return;
-  try {
-    var res = await fetch(commBase(), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': SESSION.password },
-      body: JSON.stringify({ action: 'resolveDispute', disputeId: disputeId, resolution: resolution })
-    });
-    var d = await res.json();
-    if (!res.ok) throw new Error(d.error || 'Failed');
-    await loadDisputes();
-  } catch (err) { alert('Error: ' + err.message); }
-}
+};
 
 </script>
 </body>
