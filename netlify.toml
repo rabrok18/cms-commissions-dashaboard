@@ -25,6 +25,6 @@
 
 [[redirects]]
   from   = "/api/sync"
-  to     = "/.netlify/functions/sync"
+  to     = "/.netlify/functions/sync-background"
   status = 200
   force  = true
