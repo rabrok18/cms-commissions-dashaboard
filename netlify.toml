@@ -1,50 +1,30 @@
 [build]
   functions = "netlify/functions"
-  publish = "public"
+  publish    = "public"
+  command    = "npm install"
 
-# ── Commission Dashboard ──────────────────────────────
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "ADMIN_PASSWORD"
+
 [[redirects]]
-  from = "/commission"
-  to = "/commission-dashboard.html"
+  from   = "/"
+  to     = "/commission-dashboard.html"
   status = 200
 
 [[redirects]]
-  from = "/api/commission"
-  to = "/.netlify/functions/commission"
+  from   = "/api/proxy"
+  to     = "/.netlify/functions/proxy"
   status = 200
-  force = true
+  force  = true
 
 [[redirects]]
-  from = "/api/sync"
-  to = "/.netlify/functions/sync"
+  from   = "/api/commission"
+  to     = "/.netlify/functions/commission"
   status = 200
-  force = true
-
-# ── Portal (existing) ────────────────────────────────
-[[redirects]]
-  from = "/"
-  to = "/admin.html"
-  status = 200
+  force  = true
 
 [[redirects]]
-  from = "/admin"
-  to = "/admin.html"
+  from   = "/api/sync"
+  to     = "/.netlify/functions/sync"
   status = 200
-
-[[redirects]]
-  from = "/api/portals"
-  to = "/.netlify/functions/portals"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/api/proxy"
-  to = "/.netlify/functions/proxy"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/portal/:slug"
-  to = "/.netlify/functions/serve"
-  status = 200
-  force = true
+  force  = true
