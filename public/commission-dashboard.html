@@ -365,8 +365,27 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
 /* ANIMATIONS */
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .tab.on{animation:fadeUp .2s ease both}
-input[type="date"]{color-scheme:dark}
-#custom-date-wrap input{background:#1e2d47!important;color:#fff!important;border:1px solid rgba(255,255,255,.2)!important;font-family:inherit}
+.custom-date-wrap{display:flex!important;align-items:center;gap:6px}
+.custom-date-wrap[style*="display:none"]{display:none!important}
+.date-input{
+  background:#1a2d4a!important;
+  color:#fff!important;
+  border:1px solid rgba(255,255,255,.15)!important;
+  border-radius:6px;
+  padding:5px 9px;
+  font-size:11px;
+  font-family:inherit;
+  outline:none;
+  color-scheme:dark;
+  cursor:pointer;
+}
+.date-input:focus{border-color:var(--blue)!important}
+.date-input::-webkit-calendar-picker-indicator{
+  filter:invert(1) opacity(0.6);
+  cursor:pointer;
+}
+.date-input::-webkit-calendar-picker-indicator:hover{filter:invert(1) opacity(1)}
+.date-sep{color:rgba(255,255,255,.4);font-size:11px}
 
 /* ═══════ HERO EARNINGS ═══════ */
 .hero-earnings{background:linear-gradient(135deg,var(--ink) 0%,#1a2b4a 100%);border-radius:16px;padding:32px 36px;margin-bottom:24px;display:grid;grid-template-columns:1fr auto;gap:40px;align-items:center;box-shadow:0 10px 40px rgba(10,15,26,.15);position:relative;overflow:hidden}
@@ -480,10 +499,10 @@ input[type="date"]{color-scheme:dark}
         <option value="ly">Last Year</option>
         <option value="custom">Custom Range…</option>
       </select>
-      <div id="custom-date-wrap" style="display:none;align-items:center;gap:6px">
-        <input type="date" id="date-from" onchange="renderDash()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);border-radius:7px;padding:4px 8px;font-size:11px;outline:none">
-        <span style="color:rgba(255,255,255,.3);font-size:11px">to</span>
-        <input type="date" id="date-to" onchange="renderDash()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);border-radius:7px;padding:4px 8px;font-size:11px;outline:none">
+      <div id="custom-date-wrap" class="custom-date-wrap" style="display:none">
+        <input type="date" id="date-from" class="date-input" onchange="renderDash()">
+        <span class="date-sep">to</span>
+        <input type="date" id="date-to" class="date-input" onchange="renderDash()">
       </div>
       <button class="tb-btn" onclick="exportCSV()">Export CSV</button>
       <button class="tb-btn" onclick="doLogout()">Sign Out</button>
@@ -1144,35 +1163,62 @@ function updateSyncStatus(ss){
 
 async function syncNow(){
   var btn=document.getElementById('sync-btn');
-  if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span> Starting…';}
+  var origHtml = btn ? btn.innerHTML : '';
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span> Syncing…';}
+
+  // Record the timestamp BEFORE starting, so we can detect when new data arrives
+  var startTime = Date.now();
+  var syncStatusBeforeStart = null;
   try{
-    // Background function returns 202 immediately
-    var res=await fetch('/.netlify/functions/sync-background',{
+    var ssRes = await fetch(commBase()+'?action=syncStatus').then(function(r){return r.json();});
+    syncStatusBeforeStart = ssRes.syncedAt;
+  }catch(e){}
+
+  try{
+    var res = await fetch('/.netlify/functions/sync-background', {
       method:'POST',
       headers:{'Content-Type':'application/json','X-Admin-Password':SESSION.password||''}
     });
-    if(res.status!==202 && res.status!==200){
-      var text=await res.text();
-      throw new Error('Sync trigger failed: '+res.status+' '+text.slice(0,100));
+    if(res.status !== 202 && res.status !== 200){
+      var text = await res.text();
+      throw new Error('Trigger failed ('+res.status+'): '+text.slice(0,150));
     }
-    console.log('[CMS] Sync started in background');
-    if(btn){btn.innerHTML='<span class="spin"></span> Syncing…';}
-    // Poll for status every 3 seconds
+    console.log('[CMS] Sync triggered, polling for completion…');
+    if(btn) btn.innerHTML = '<span class="spin"></span> Syncing…';
+
+    // Poll every 5s for up to 3 minutes
+    var pollCount = 0;
+    var maxPolls = 36; // 3 minutes
     var pollInterval = setInterval(async function(){
+      pollCount++;
       try{
-        var ss=await fetch(commBase()+'?action=syncStatus').then(function(r){return r.json();});
+        var ss = await fetch(commBase()+'?action=syncStatus').then(function(r){return r.json();});
         updateSyncStatus(ss);
-        if(!ss.status || !ss.status.running){
+
+        // Detect completion: new syncedAt timestamp different from before
+        var newSyncedAt = ss.syncedAt;
+        var completed = newSyncedAt && newSyncedAt !== syncStatusBeforeStart;
+
+        // Also check status object
+        var statusRunning = ss.status && ss.status.running;
+
+        if(completed || (!statusRunning && pollCount > 2)){
           clearInterval(pollInterval);
-          if(btn){btn.disabled=false;btn.innerHTML='<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/><polyline points="12 6 12 12 16 14"/></svg> Sync from BuildOps';}
-          // Reload from cache
+          console.log('[CMS] Sync complete. New timestamp:', newSyncedAt);
+          if(btn){btn.disabled=false;btn.innerHTML=origHtml;}
+          // Force reload from cache
           await loadFromCache();
+        } else if(pollCount >= maxPolls){
+          clearInterval(pollInterval);
+          console.warn('[CMS] Sync poll timeout after 3 minutes');
+          if(btn){btn.disabled=false;btn.innerHTML=origHtml;}
+          alert('Sync is taking longer than expected. Check Netlify function logs.');
         }
-      }catch(e){ console.warn('Poll error:',e.message); }
-    }, 3000);
+      }catch(e){ console.warn('Poll error:', e.message); }
+    }, 5000);
   }catch(err){
     alert('Sync failed: '+err.message);
-    if(btn){btn.disabled=false;btn.innerHTML='<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/><polyline points="12 6 12 12 16 14"/></svg> Sync from BuildOps';}
+    if(btn){btn.disabled=false;btn.innerHTML=origHtml;}
   }
 }
 
@@ -1366,8 +1412,24 @@ var cbOnly=false;
 function onPeriodChange(){
   var v=document.getElementById('period-sel').value;
   var w=document.getElementById('custom-date-wrap');
-  if(w) w.style.display=v==='custom'?'flex':'none';
+  if(w){
+    w.style.display = (v==='custom') ? 'flex' : 'none';
+  }
   if(v!=='custom') renderDash();
+  else {
+    // Pre-fill custom dates if empty
+    var df = document.getElementById('date-from');
+    var dt = document.getElementById('date-to');
+    if(df && !df.value){
+      var d = new Date();
+      d.setMonth(d.getMonth()-1);
+      df.value = d.toISOString().slice(0,10);
+    }
+    if(dt && !dt.value){
+      dt.value = new Date().toISOString().slice(0,10);
+    }
+    renderDash();
+  }
 }
 
 function onPeriodChange(){
