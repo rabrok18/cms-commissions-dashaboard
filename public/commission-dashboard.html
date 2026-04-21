@@ -976,11 +976,8 @@ function switchTab(t){
 
 // ── DATA LOAD ─────────────────────────────────────────────
 async function loadData(){
-  // Try cache first, fall back to direct fetch
-  var loaded = await loadFromCache();
-  if(!loaded){
-    await loadFromBuildOps();
-  }
+  // Cache-only. If empty, show sync prompt — never auto-fetch.
+  await loadFromCache();
 }
 
 async function loadFromCache(){
@@ -990,23 +987,26 @@ async function loadFromCache(){
     var ss = await fetch(commBase()+'?action=syncStatus').then(function(r){return r.json();});
     updateSyncStatus(ss);
 
-    if(!ss.syncedAt){
-      document.getElementById('dash-body').innerHTML='<div class="empty"><div class="empty-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></div><p>No data cached yet.</p><p style="font-size:11px;margin-top:4px">Click <strong>Sync from BuildOps</strong> to pull data.</p></div>';
-      return false;
-    }
-
-    // Load all cached datasets in parallel (instant — no pagination loops)
+    // Load all cached datasets in parallel (instant)
     var results = await Promise.all([
       fetch(commBase()+'?action=data&key=jobs').then(function(r){return r.json();}),
       fetch(commBase()+'?action=data&key=invoices').then(function(r){return r.json();}),
       fetch(commBase()+'?action=data&key=employees').then(function(r){return r.json();}),
       fetch(commBase()+'?action=data&key=customers').then(function(r){return r.json();}),
+      fetch(commBase()+'?action=data&key=payments').then(function(r){return r.json();}),
     ]);
 
     jobs     = results[0].items || [];
     invoices = results[1].items || [];
     var empList = results[2].items || [];
     var custList = results[3].items || [];
+    payments = results[4].items || [];
+
+    // If the primary data is empty, show sync prompt
+    if(jobs.length === 0 && invoices.length === 0){
+      document.getElementById('dash-body').innerHTML='<div class="empty"><div class="empty-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></div><p>No data cached yet.</p><p style="font-size:11px;margin-top:4px">Click <strong>Sync from BuildOps</strong> in the top bar to pull data.</p></div>';
+      return false;
+    }
 
     empMap = {};
     empList.forEach(function(e){
@@ -1016,7 +1016,26 @@ async function loadFromCache(){
     custMap = {};
     custList.forEach(function(c){ if(c&&c.id) custMap[c.id]=c; });
 
-    console.log('[CMS] Cache loaded — jobs:', jobs.length, 'invoices:', invoices.length, 'employees:', empList.length, 'customers:', custList.length);
+    // Build payments-by-invoice lookup for balance calculation
+    paymentsByInvoice = {};
+    payments.forEach(function(p){
+      var invId = p.invoiceId || p.invoice_id;
+      if(invId){
+        if(!paymentsByInvoice[invId]) paymentsByInvoice[invId] = [];
+        paymentsByInvoice[invId].push(p);
+      }
+      if(Array.isArray(p.lineItems)){
+        p.lineItems.forEach(function(li){
+          var liInvId = li.invoiceId || li.invoice_id;
+          if(liInvId){
+            if(!paymentsByInvoice[liInvId]) paymentsByInvoice[liInvId] = [];
+            paymentsByInvoice[liInvId].push({amount: li.amount || li.amountApplied || 0});
+          }
+        });
+      }
+    });
+
+    console.log('[CMS] Cache loaded — jobs:', jobs.length, 'invoices:', invoices.length, 'employees:', empList.length, 'customers:', custList.length, 'payments:', payments.length);
 
     // Log sample customer to see tag structure
     if(custList.length > 0){
