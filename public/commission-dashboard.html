@@ -590,6 +590,23 @@ input[type="date"]{color-scheme:dark}
       </div>
 
     </div>
+
+    <!-- Rep Name Override Card -->
+    <div class="card" style="margin-top:16px">
+      <div class="card-hdr">
+        <div class="card-title">
+          <div class="cico"><svg width="12" height="12" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
+          Rep Name Overrides
+        </div>
+        <button class="btn btn-p bsm" onclick="saveRepOverrides()">Save Overrides</button>
+      </div>
+      <div class="card-body">
+        <div class="alert ainfo show" style="margin-bottom:14px">
+          If a rep's name is showing wrong (e.g. "Paul Carroll" but should be "Ray Brokofsky"), override it here. This maps a BuildOps Employee ID to a display name.
+        </div>
+        <div id="rep-override-list"></div>
+      </div>
+    </div>
   </div>
 
   <!-- PAYOUTS TAB -->
@@ -833,8 +850,9 @@ input[type="date"]{color-scheme:dark}
 var SITE_URL = localStorage.getItem('cms-site-url') || '';
 var SESSION  = null;
 var RATES    = {house:3,rep:5,none:5,cbDays:90};
-var jobs=[], invoices=[], empMap={}, custMap={};
+var jobs=[], invoices=[], empMap={}, custMap={}, payments=[], paymentsByInvoice={};
 var customerTags=JSON.parse(localStorage.getItem('cms-customer-tags')||'{}');
+var repOverrides=JSON.parse(localStorage.getItem('cms-rep-overrides')||'{}');
 var enriched=[];
 var cbOnly=false, sortCol='issuedDate', sortDir='desc';
 
@@ -843,6 +861,19 @@ function commBase(){  return (SITE_URL||window.location.origin)+'/.netlify/funct
 
 // ── LOGIN ─────────────────────────────────────────────────
 document.getElementById('login-pw').addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
+
+// Restore session on page load
+(function(){
+  try{
+    var saved = sessionStorage.getItem('cms-session');
+    if(saved){
+      SESSION = JSON.parse(saved);
+      document.getElementById('login-screen').style.display='none';
+      document.getElementById('app').classList.add('show');
+      initApp();
+    }
+  }catch(e){ console.warn('Session restore failed:', e.message); }
+})();
 
 
 async function doLogin(){
@@ -861,6 +892,8 @@ async function doLogin(){
     if(!res.ok) throw new Error(d.error||'Invalid password');
     SESSION = d;
     SESSION.password = pw;
+    // Save session to survive page refreshes
+    try{ sessionStorage.setItem('cms-session', JSON.stringify(SESSION)); }catch(e){}
     document.getElementById('login-screen').style.display='none';
     document.getElementById('app').classList.add('show');
     initApp();
@@ -872,6 +905,7 @@ async function doLogin(){
 }
 
 function doLogout(){
+  try{ sessionStorage.removeItem('cms-session'); }catch(e){}
   SESSION=null; jobs=[]; invoices=[]; enriched=[];
   document.getElementById('login-screen').style.display='flex';
   document.getElementById('app').classList.remove('show');
@@ -1219,13 +1253,28 @@ function enrich(){
     if(invStatus === 'void' || invStatus === 'deleted' || invStatus === 'voided') return;
 
     var job = jobById[inv.jobId] || {};
-    var repId = job.soldById || job.accountManagerId || '';
-    var repName = repId ? (empMap[repId] || ('Rep ' + repId.slice(0,6))) : 'Unassigned';
+    // Priority: soldById (who sold it) > accountManagerId > ownerId
+    var repId = job.soldById || job.accountManagerId || job.ownerId || '';
+    // Admin override takes precedence over BuildOps name
+    var repName = repId ? (repOverrides[repId] || empMap[repId] || ('Rep ' + repId.slice(0,6))) : 'Unassigned';
+    // Debug: log first few to diagnose wrong names
+    if(enriched.length < 3){
+      console.log('[CMS] Rep debug:', {
+        invNum: inv.invoiceNumber,
+        jobNum: job.jobNumber,
+        soldById: job.soldById,
+        accountManagerId: job.accountManagerId,
+        ownerId: job.ownerId,
+        usingRepId: repId,
+        resolvedName: repName
+      });
+    }
 
     var custName = inv.billingCustomerName || job.billingCustomerName || job.customerName || 'Unknown';
+    var custId = inv.billingCustomerId || job.billingCustomerId || '';
 
-    // Tag resolution — manual customerTags map is source of truth
-    var assignedTag = customerTags[custName] || '';
+    // Tag resolution — prefer ID lookup (stable), fall back to name (for migration)
+    var assignedTag = (custId && customerTags[custId]) || customerTags[custName] || '';
     var tagType = assignedTag || 'none';
     var tagLabel = assignedTag === 'house' ? 'House' : (assignedTag === 'rep' ? 'Rep' : 'Untagged');
     var rate = RATES[tagType] || RATES.rep || 5;
@@ -1247,14 +1296,24 @@ function enrich(){
       if(!isNaN(cd.getTime())) closedDate = cd;
     }
 
+    // Payment lookup — sum all payments applied to this invoice
+    var totalPaid = 0;
+    if(typeof paymentsByInvoice !== 'undefined' && paymentsByInvoice[inv.id]){
+      paymentsByInvoice[inv.id].forEach(function(p){ totalPaid += (Number(p.amount) || 0); });
+    }
+    var totalAmount = Number(inv.totalAmount) || 0;
+    var balance = totalAmount - totalPaid;
+    // Tolerance for floating point — within 1 cent = fully paid
+    var isFullyPaid = totalAmount > 0 && balance <= 0.01;
+
     // Status determination:
-    // - closed = Paid (earned, no clawback risk)
-    // - posted/exported/draft with days since issued > cbDays = Clawback
-    // - posted/exported/draft = Pending
+    // PAID = balance at or below zero (client paid)
+    // PENDING = draft/posted/exported and still within clawback window
+    // CLAWBACK = not paid + issued more than cbDays ago
     var daysSinceIssued = issuedDate ? Math.floor((today - issuedDate) / 86400000) : 0;
-    var isPaid = invStatus === 'closed';
-    var isClawback = !isPaid && daysSinceIssued > cbDays;
-    var isWarn = !isPaid && !isClawback && daysSinceIssued > cbDays * 0.75;
+    var isPaid = isFullyPaid || invStatus === 'closed';
+    var isClawback = !isPaid && issuedDate && daysSinceIssued > cbDays;
+    var isWarn = !isPaid && !isClawback && issuedDate && daysSinceIssued > cbDays * 0.75;
     var commStatus = isPaid ? 'paid' : (isClawback ? 'clawback' : 'pending');
 
     enriched.push({
@@ -1275,8 +1334,10 @@ function enrich(){
 
       // Financial
       subtotal: subtotal,
-      totalAmount: Number(inv.totalAmount) || 0,
+      totalAmount: totalAmount,
       taxAmount: Number(inv.taxAmount) || 0,
+      totalPaid: totalPaid,
+      balance: balance,
       rate: rate,
       commission: commission,
 
@@ -2133,25 +2194,57 @@ function renderEmployeeList(emps){
 
 // Override openUserModal to accept employee data
 var _origOpenUserModal = openUserModal;
-openUserModal = function(empId, empName, empEmail, empRole, empDept){
-  // If called with no args (old edit flow) fall through
-  if(!empId){ _origOpenUserModal && _origOpenUserModal(); return; }
+openUserModal = function(empIdOrUser, empName, empEmail, empRole, empDept){
+  // Support both flows:
+  // 1) openUserModal('empId', 'name', ...) — new user from employee picker
+  // 2) openUserModal('{json of user}') — editing existing user (legacy)
+  // 3) openUserModal() — manual add (legacy)
 
-  // Pre-fill modal with employee info
+  if(!empIdOrUser){
+    // Blank modal for manual add
+    document.getElementById('modal-user-id').value='';
+    document.getElementById('modal-empid').value='';
+    document.getElementById('modal-password').value='';
+    document.getElementById('modal-avatar').textContent='?';
+    document.getElementById('modal-emp-name').textContent='Manual Entry';
+    document.getElementById('modal-emp-id').textContent='—';
+    document.getElementById('modal-title').textContent='Add Rep';
+    document.getElementById('modal-alert').className='alert';
+    document.getElementById('user-modal').classList.add('open');
+    return;
+  }
+
+  // Check if first arg is a JSON string (edit flow)
+  if(typeof empIdOrUser === 'string' && empIdOrUser.charAt(0) === '{'){
+    try{
+      var u = JSON.parse(empIdOrUser);
+      document.getElementById('modal-user-id').value = u.id || '';
+      document.getElementById('modal-empid').value = u.buildopsEmployeeId || '';
+      document.getElementById('modal-password').value = '';
+      var initials = (u.name||'?').split(' ').map(function(w){return w[0];}).slice(0,2).join('').toUpperCase();
+      document.getElementById('modal-avatar').textContent = initials;
+      document.getElementById('modal-emp-name').textContent = u.name || 'Unknown';
+      document.getElementById('modal-emp-id').textContent = u.buildopsEmployeeId || '—';
+      document.getElementById('modal-title').textContent = 'Edit Rep';
+      document.getElementById('modal-alert').className = 'alert';
+      document.getElementById('user-modal').classList.add('open');
+      return;
+    }catch(e){ console.warn('Edit flow JSON parse failed:', e.message); }
+  }
+
+  // New user from employee picker: (empId, empName, empEmail, empRole, empDept)
   document.getElementById('modal-user-id').value = '';
-  document.getElementById('modal-empid').value = empId;
+  document.getElementById('modal-empid').value = empIdOrUser;
   document.getElementById('modal-password').value = '';
-  document.getElementById('modal-title').textContent = 'Grant Commission Access';
-
-  var initials = empName.split(' ').map(function(w){return w[0];}).slice(0,2).join('').toUpperCase();
+  var initials = (empName||'?').split(' ').map(function(w){return w[0];}).slice(0,2).join('').toUpperCase();
   document.getElementById('modal-avatar').textContent = initials;
-  document.getElementById('modal-emp-name').textContent = empName;
-  document.getElementById('modal-emp-id').textContent = empId;
+  document.getElementById('modal-emp-name').textContent = empName || 'Unknown';
+  document.getElementById('modal-emp-id').textContent = empIdOrUser;
+  document.getElementById('modal-title').textContent = 'Grant Commission Access';
   document.getElementById('modal-alert').className = 'alert';
   document.getElementById('user-modal').classList.add('open');
   setTimeout(function(){ document.getElementById('modal-password').focus(); }, 100);
 };
-
 // Override saveUser to use hidden empid field
 var _origSaveUser = saveUser;
 saveUser = async function(){
@@ -2174,8 +2267,12 @@ saveUser = async function(){
     });
     var d = await res.json();
     if(!res.ok) throw new Error(d.error||'Save failed');
-    closeUserModal();
-    loadUsers();
+    console.log('[CMS] User saved:', d);
+    showModalAlert('aok', 'Saved! Closing…');
+    setTimeout(function(){
+      closeUserModal();
+      loadUsers();
+    }, 600);
     // Re-render employee list to update "Has Access" badges
     if(allBuildOpsEmployees.length) renderEmployeeList(allBuildOpsEmployees);
   }catch(err){
@@ -2185,20 +2282,20 @@ saveUser = async function(){
 
 // ── CUSTOMER TAG MANAGER ─────────────────────────────────
 function getUniqueCustomers(){
-  var names={};
+  // Dedupe by ID primarily, but keep name for display and migration
+  var byId={};
   (jobs||[]).forEach(function(j){
-    var n=j.billingCustomerName;
-    if(n&&n!=='Unknown'){
-      if(!names[n])names[n]={name:n,jobCount:0,invoiceTotal:0};
-      names[n].jobCount++;
-    }
+    var id=j.billingCustomerId, name=j.billingCustomerName;
+    if(!id||!name||name==='Unknown')return;
+    if(!byId[id]) byId[id]={id:id,name:name,jobCount:0,invoiceTotal:0};
+    byId[id].jobCount++;
   });
   (enriched||[]).forEach(function(r){
-    if(r.custName&&names[r.custName]&&r.invoiced){
-      names[r.custName].invoiceTotal+=(r.subtotal||0);
+    if(r.customerId && byId[r.customerId]){
+      byId[r.customerId].invoiceTotal += (r.subtotal||0);
     }
   });
-  return Object.values(names).sort(function(a,b){return b.invoiceTotal-a.invoiceTotal;});
+  return Object.values(byId).sort(function(a,b){return b.invoiceTotal-a.invoiceTotal;});
 }
 
 function renderTagManager(){
@@ -2207,7 +2304,7 @@ function renderTagManager(){
   var filter=((document.getElementById('tag-filter')||{}).value||'all');
   custs=custs.filter(function(c){
     if(q&&!c.name.toLowerCase().includes(q))return false;
-    var tag=customerTags[c.name]||'';
+    var tag=customerTags[c.id]||customerTags[c.name]||'';
     if(filter==='untagged'&&tag)return false;
     if(filter==='house'&&tag!=='house')return false;
     if(filter==='rep'&&tag!=='rep')return false;
@@ -2218,7 +2315,7 @@ function renderTagManager(){
   if(!custs.length){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--faint);font-size:12px">No customers found</div>';return;}
   el.innerHTML='';
   custs.forEach(function(c){
-    var tag=customerTags[c.name]||'';
+    var tag=customerTags[c.id]||customerTags[c.name]||'';
     var row=document.createElement('div');
     row.style.cssText='display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--line)';
     row.innerHTML='<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(c.name)+'</div><div style="font-size:10px;color:var(--faint);margin-top:2px">'+c.jobCount+' jobs &middot; '+fmt(c.invoiceTotal)+' invoiced</div></div>';
@@ -2226,8 +2323,14 @@ function renderTagManager(){
     sel.style.cssText='border:1.5px solid var(--line);border-radius:6px;padding:4px 8px;font-family:inherit;font-size:11px;color:var(--text);background:var(--surface);outline:none;width:110px';
     sel.innerHTML='<option value=""'+(tag?'':' selected')+'>No Tag</option><option value="house"'+(tag==='house'?' selected':'')+'>House</option><option value="rep"'+(tag==='rep'?' selected':'')+'>Rep</option>';
     sel.onchange=function(){
-      if(this.value)customerTags[c.name]=this.value;
-      else delete customerTags[c.name];
+      // Save by ID (stable) but also clean up name-based key if it existed
+      if(this.value){
+        customerTags[c.id]=this.value;
+        if(customerTags[c.name] && c.id) delete customerTags[c.name];
+      } else {
+        delete customerTags[c.id];
+        delete customerTags[c.name];
+      }
       document.getElementById('tag-count').textContent=Object.keys(customerTags).length;
     };
     row.appendChild(sel);
@@ -2241,6 +2344,53 @@ function saveCustomerTags(){
   renderDash();
   showA('tag-alert','aok','Tags saved. Dashboard updated.');
 }
-</script>
+
+function renderRepOverrides(){
+  var el = document.getElementById('rep-override-list');
+  if(!el) return;
+  // Collect unique rep IDs from jobs
+  var repIds = {};
+  (jobs||[]).forEach(function(j){
+    [j.soldById, j.accountManagerId, j.ownerId].forEach(function(id){
+      if(id) repIds[id] = true;
+    });
+  });
+  var ids = Object.keys(repIds);
+  if(!ids.length){
+    el.innerHTML = '<div style="padding:12px;color:var(--faint);font-size:12px">Load data first to see rep IDs.</div>';
+    return;
+  }
+  el.innerHTML = '';
+  ids.forEach(function(id){
+    var buildopsName = empMap[id] || '';
+    var override = repOverrides[id] || '';
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)';
+    row.innerHTML = 
+      '<div style="flex:1;min-width:0">'
+      +'<div style="font-size:13px;font-weight:600;color:var(--text)">'+(esc(buildopsName) || '<em style="color:var(--faint);font-weight:400">Unknown in BuildOps</em>')+'</div>'
+      +'<div style="font-size:10px;font-family:monospace;color:var(--faint);margin-top:2px">'+esc(id)+'</div>'
+      +'</div>'
+      +'<div style="font-size:11px;color:var(--faint)">&rarr;</div>';
+    var input = document.createElement('input');
+    input.type='text';
+    input.placeholder='Override name (leave blank = use BuildOps)';
+    input.value = override;
+    input.style.cssText='width:220px;border:1.5px solid var(--line);border-radius:6px;padding:6px 10px;font-family:inherit;font-size:12px;color:var(--text);background:var(--surface);outline:none';
+    input.oninput = function(){
+      if(this.value.trim()) repOverrides[id] = this.value.trim();
+      else delete repOverrides[id];
+    };
+    row.appendChild(input);
+    el.appendChild(row);
+  });
+}
+
+function saveRepOverrides(){
+  localStorage.setItem('cms-rep-overrides', JSON.stringify(repOverrides));
+  enrich();
+  renderDash();
+  alert('Rep overrides saved. Dashboard updated.');
+}</script>
 </body>
 </html>
