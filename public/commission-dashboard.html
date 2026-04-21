@@ -1176,53 +1176,11 @@ async function syncNow(){
   }
 }
 
-async function fetchAllProxy(endpoint){
-  var all=[],page=0;
-  while(page<50){
-    showDashLoading('Loading '+endpoint.split('/v1/')[1]+' — '+all.length+' records…');
-    var d=await callProxy(endpoint+'?page='+page+'&page_size=100&limit=100');
-    var items=Array.isArray(d)?d:(d&&Array.isArray(d.items)?d.items:[]);
-    all=all.concat(items);
-    var total=(d&&d.totalCount)||(d&&d.query&&d.query.totalCount)||0;
-    console.log('[CMS] '+endpoint+' p'+page+': '+items.length+' items, total:'+total+', have:'+all.length);
-    if(items.length===0||items.length<100)break;
-    if(total>0&&all.length>=total)break;
-    page++;
-  }
-  return all;
-}
 
-function updateSyncStatus(syncedAt, errors){
-  var el=document.getElementById('sync-status');
-  if(!el) return;
-  if(!syncedAt){ el.textContent='Never synced'; el.style.color='rgba(255,255,255,.3)'; return; }
-  var ago=Math.floor((Date.now()-new Date(syncedAt))/60000);
-  var label=ago<60?ago+'m ago':ago<1440?Math.floor(ago/60)+'h ago':new Date(syncedAt).toLocaleDateString('en-US',{month:'short',day:'numeric'});
-  el.textContent='Synced '+label;
-  el.style.color='rgba(255,255,255,.4)';
-  if(errors&&Object.keys(errors).length){ el.textContent+=' ⚠'; el.title='Errors: '+JSON.stringify(errors); }
-}
 
-async function syncNow(){
-  var btn=document.getElementById('sync-btn');
-  if(btn){btn.innerHTML='<span class="spin"></span> Syncing…';btn.disabled=true;}
-  showDashLoading('Syncing from BuildOps — this takes 1-2 minutes for all records…');
-  try{
-    var res=await fetch('/.netlify/functions/sync',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','X-Admin-Password':SESSION.password||''}
-    });
-    var d=await res.json();
-    if(!res.ok) throw new Error(d.error||'Sync failed');
-    console.log('[Commission] Sync complete:',d);
-    await loadData();
-  }catch(err){
-    alert('Sync failed: '+err.message);
-    showDashLoading(null);
-    document.getElementById('dash-body').innerHTML='<div class="empty"><p style="color:var(--red)">Sync error: '+esc(err.message)+'</p></div>';
-  }
-  if(btn){btn.innerHTML='<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Sync Now';btn.disabled=false;}
-}
+
+
+
 
 async function callProxy(path){
   var base=path.split('?')[0],qp=path.split('?')[1]||'';
