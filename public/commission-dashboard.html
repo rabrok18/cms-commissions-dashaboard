@@ -367,6 +367,68 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
 .tab.on{animation:fadeUp .2s ease both}
 input[type="date"]{color-scheme:dark}
 #custom-date-wrap input{background:#1e2d47!important;color:#fff!important;border:1px solid rgba(255,255,255,.2)!important;font-family:inherit}
+
+/* ═══════ HERO EARNINGS ═══════ */
+.hero-earnings{background:linear-gradient(135deg,var(--ink) 0%,#1a2b4a 100%);border-radius:16px;padding:32px 36px;margin-bottom:24px;display:grid;grid-template-columns:1fr auto;gap:40px;align-items:center;box-shadow:0 10px 40px rgba(10,15,26,.15);position:relative;overflow:hidden}
+.hero-earnings::before{content:'';position:absolute;top:-50%;right:-10%;width:500px;height:500px;background:radial-gradient(circle,rgba(21,88,214,.2) 0%,transparent 60%);pointer-events:none}
+.hero-main{position:relative;z-index:1}
+.hero-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,.4);margin-bottom:14px}
+.hero-amount{font-family:'JetBrains Mono',monospace;font-size:56px;font-weight:500;line-height:1;letter-spacing:-2px;color:#fff;margin-bottom:12px}
+.hero-sub{font-size:13px;color:rgba(255,255,255,.5)}
+.hero-breakdown{display:flex;gap:32px;position:relative;z-index:1;flex-wrap:wrap}
+.hero-stat{text-align:right}
+.hero-stat-v{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:500;line-height:1;margin-bottom:4px}
+.hero-stat-l{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.4)}
+
+/* ═══════ SECTION HEADERS ═══════ */
+.section-h{display:flex;align-items:center;gap:14px;margin:24px 0 12px}
+.section-t{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text);white-space:nowrap}
+.section-l{flex:1;height:1px;background:var(--line)}
+.section-ct{font-size:11px;color:var(--faint);white-space:nowrap}
+
+/* ═══════ REP CARDS ═══════ */
+.rep-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:24px}
+.rep-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px;cursor:pointer;transition:all .15s;box-shadow:var(--sh);position:relative}
+.rep-card:hover{border-color:var(--blue);box-shadow:0 8px 24px rgba(21,88,214,.1);transform:translateY(-2px)}
+.rep-rank{position:absolute;top:14px;right:16px;font-size:10px;font-weight:700;color:var(--faint);letter-spacing:1px}
+.rep-name{font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px;padding-right:30px}
+.rep-total{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:500;color:var(--text);line-height:1;margin-bottom:6px;letter-spacing:-1px}
+.rep-meta{font-size:11px;color:var(--faint);margin-bottom:12px}
+.rep-bar{display:flex;height:6px;border-radius:3px;overflow:hidden;background:var(--surface2);margin-bottom:10px}
+.rep-split{display:flex;gap:14px;font-size:11px;color:var(--muted);flex-wrap:wrap}
+.rep-split strong{font-family:'JetBrains Mono',monospace;font-weight:500}
+
+/* ═══════ AUDIT TRAIL ═══════ */
+.audit-wrap{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--sh);overflow:hidden}
+.cust-block{border-bottom:1px solid var(--line)}
+.cust-block:last-child{border-bottom:none}
+.cust-hdr{display:grid;grid-template-columns:1fr auto auto auto;gap:14px;align-items:center;padding:14px 20px;cursor:pointer;transition:background .15s;user-select:none;background:var(--surface2)}
+.cust-hdr:hover{background:#f0f3fa}
+.cust-name{font-size:14px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px}
+.cust-chev{transition:transform .15s;flex-shrink:0;color:var(--muted)}
+.cust-block.collapsed .cust-chev{transform:rotate(0deg)}
+.cust-block:not(.collapsed) .cust-chev{transform:rotate(90deg)}
+.cust-meta{font-size:11px;color:var(--faint);white-space:nowrap}
+.cust-total{font-size:11px;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.cust-amt{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:500;color:var(--text);letter-spacing:-.2px;min-width:80px;text-align:right}
+.cust-body{max-height:2000px;overflow:hidden;transition:max-height .2s}
+.cust-block.collapsed .cust-body{max-height:0}
+.audit-tbl{width:100%;border-collapse:collapse;background:var(--surface)}
+.audit-tbl th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--faint);padding:10px 14px;text-align:left;background:#fafbfd;border-top:1px solid var(--line);border-bottom:1px solid var(--line);white-space:nowrap}
+.audit-tbl td{padding:11px 14px;border-bottom:1px solid var(--line);font-size:12px;color:var(--body);white-space:nowrap;vertical-align:top}
+.audit-tbl tr:last-child td{border-bottom:none}
+.audit-tbl tr:hover td{background:#fafbfd}
+.audit-tbl td.desc{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
+.audit-tbl td.commission{font-weight:700;color:var(--text)}
+.audit-tbl td .sub{font-size:10px;color:var(--faint);font-weight:400;margin-top:2px;white-space:normal;line-height:1.4}
+.audit-tbl tr.cb-row td{background:#fff0f0!important}
+.audit-tbl tr.warn-row td{background:#fffbea!important}
+
+/* ═══════ FILTER BAR TIDY ═══════ */
+.dash-filters{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:18px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;box-shadow:var(--sh)}
+.dash-filters .fl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--faint);margin-right:2px}
+
+@media(max-width:900px){.hero-earnings{grid-template-columns:1fr;gap:24px}.hero-breakdown{justify-content:flex-start}.hero-amount{font-size:42px}}
 </style>
 </head>
 <body>
@@ -401,6 +463,11 @@ input[type="date"]{color-scheme:dark}
       <span class="topbar-section">Commission</span>
     </div>
     <div class="topbar-right">
+      <span id="sync-status" style="font-size:11px;color:rgba(255,255,255,.3);margin-right:6px">—</span>
+      <button class="tb-btn" id="sync-btn" onclick="syncNow()" style="background:rgba(16,122,74,.25);color:#6ee7b7;border:1px solid rgba(16,122,74,.4);display:inline-flex;align-items:center;gap:5px">
+        <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        Sync
+      </button>
       <span class="tb-user" id="hdr-user"></span>
       <span class="tb-role" id="hdr-role"></span>
       <select class="tb-period" id="period-sel" onchange="onPeriodChange()">
@@ -432,58 +499,39 @@ input[type="date"]{color-scheme:dark}
     <div class="stab hidden" id="tab-api-btn" data-tab="api" onclick="switchTab('api')"><div class="dot"></div>API Tester</div>
   </nav>
 
-  <!-- DASHBOARD TAB -->
+    <!-- DASHBOARD TAB -->
   <div class="tab on" id="tab-dash">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
-      <div class="filters" style="margin-bottom:0;flex:1">
-        <span class="fl" id="rep-filter-lbl">Rep</span>
-        <select class="fsel" id="f-rep" onchange="renderDash()"><option value="all">All Reps</option></select>
-        <span class="fl">Tag</span>
-        <select class="fsel" id="f-tag" onchange="renderDash()">
-          <option value="all">All Tags</option>
-          <option value="house">House</option>
-          <option value="rep">Rep</option>
-          <option value="none">No Tag</option>
-        </select>
-        <select class="fsel" id="f-status" onchange="renderDash()">
-          <option value="all">All Statuses</option>
-          <option value="paid">Paid</option>
-          <option value="pending">Pending</option>
-          <option value="clawback">Clawback</option>
-        </select>
-        <select class="fsel" id="f-job" onchange="renderDash()">
-          <option value="all">All Job Statuses</option>
-          <option value="complete">Complete</option>
-          <option value="inprogress">In Progress</option>
-          <option value="open">Open</option>
-          <option value="cancelled">Cancelled</option>
-        </select>
-        <input class="fsrch" id="f-search" placeholder="Search…" oninput="renderDash()">
-        <select class="fsel" id="f-invoiced" onchange="renderDash()">
-          <option value="invoiced" selected>Invoiced Only</option>
-          <option value="all">All Jobs</option>
-          <option value="notinvoiced">Not Invoiced</option>
-        </select>
-        <div class="chip" id="cb-chip" onclick="toggleCB()">⚠ Clawbacks Only</div>
-        <span class="rct" id="result-ct">—</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <span id="sync-status" style="font-size:11px;color:rgba(255,255,255,.3)">—</span>
-        <button class="btn btn-g bsm" id="sync-btn" onclick="syncNow()" style="display:none">
-          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-          Sync Now
-        </button>
-        <button class="btn btn-o bsm" onclick="loadData()" style="font-size:11px;padding:5px 10px">
-          <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-          Reload
-        </button>
-      </div>
+
+    <!-- Filter bar -->
+    <div class="dash-filters">
+      <span class="fl" id="rep-filter-lbl">Rep</span>
+      <select class="fsel" id="f-rep" onchange="renderDash()"><option value="all">All Reps</option></select>
+
+      <span class="fl">Tag</span>
+      <select class="fsel" id="f-tag" onchange="renderDash()">
+        <option value="all">All Tags</option>
+        <option value="house">House</option>
+        <option value="rep">Rep</option>
+        <option value="none">Untagged</option>
+      </select>
+
+      <span class="fl">Status</span>
+      <select class="fsel" id="f-status" onchange="renderDash()">
+        <option value="all">All</option>
+        <option value="paid">Earned (Paid)</option>
+        <option value="pending">Pending</option>
+        <option value="clawback">Clawback Risk</option>
+      </select>
+
+      <input class="fsrch" id="f-search" placeholder="Search customer, job, invoice…" oninput="renderDash()">
+
+      <div class="chip" id="cb-chip" onclick="toggleCB()">⚠ At-Risk Only</div>
+
+      <span class="rct" id="result-ct" style="margin-left:auto">—</span>
     </div>
+
     <div id="dash-body">
-      <div class="empty">
-        <div class="empty-icon"><div class="spin dk"></div></div>
-        <p>Loading commission data…</p>
-      </div>
+      <div class="empty"><div class="empty-icon"><div class="spin dk"></div></div><p>Loading commission data…</p></div>
     </div>
   </div>
 
@@ -1155,70 +1203,111 @@ async function fetchAll(ep){
 
 // ── ENRICH ────────────────────────────────────────────────
 function enrich(){
-  var invByJob={};
-  (invoices||[]).forEach(function(inv){
-    if(inv.jobId){
-      if(!invByJob[inv.jobId])invByJob[inv.jobId]=[];
-      invByJob[inv.jobId].push(inv);
-    }
-  });
   var today=new Date();
+  var cbDays = RATES.cbDays || 90;
 
-  enriched=(Array.isArray(jobs)?jobs:[]).map(function(job){
-    var repId=job.soldById||job.accountManagerId||'';
-    var repName=repId?(empMap[repId]||(repId.length>20?'Rep '+repId.slice(0,6):repId)):'Unassigned';
-    var custName=job.billingCustomerName||'Unknown';
-    var assignedTag=customerTags[custName]||'';
-    var cust=custMap[job.billingCustomerId]||{};
-    // Try multiple possible tag field names
-    var rawTags = cust.tags || cust.customerTags || cust.categoryTags || cust.categories || cust.labels || [];
-    var apiTags = Array.isArray(rawTags) ? rawTags.map(function(t){
-      return typeof t==='string' ? t.toLowerCase() : ((t&&(t.name||t.label||t.value||t.tagName))||'').toLowerCase();
-    }).filter(Boolean) : [];
-    var isHouse=assignedTag==='house'||apiTags.some(function(t){return t.includes('house');});
-    var isRep=assignedTag==='rep'||(!isHouse&&apiTags.length>0);
-    var tagType=isHouse?'house':(isRep?'rep':'none');
-    var tagLabel=isHouse?'House':(isRep?(apiTags[0]?cap(apiTags[0]):'Rep'):'—');
-    var rate=RATES[tagType]||RATES.rep||5;
-    var s=(job.status||'').toLowerCase();
-    var isComplete=s==='completed'||s==='complete'||s==='closed';
+  // Build quick lookup maps
+  var jobById = {};
+  (jobs||[]).forEach(function(j){ if(j&&j.id) jobById[j.id] = j; });
 
-    var jobInvs=(invByJob[job.id]||[]).filter(function(i){return i.status!=='void'&&i.status!=='deleted';});
-    var mainInv=jobInvs.sort(function(a,b){return(b.subtotal||0)-(a.subtotal||0);})[0]||null;
-    var subtotal=mainInv?parseFloat(mainInv.subtotal||0):0;
-    var commission=subtotal*(rate/100);
-    var isPaid=mainInv&&mainInv.status==='closed';
+  // For each invoice, create an enriched commission record
+  enriched = [];
+  (invoices||[]).forEach(function(inv){
+    if(!inv || !inv.id) return;
+    // Skip voided/deleted invoices — they don't earn commission
+    var invStatus = (inv.status||'').toLowerCase();
+    if(invStatus === 'void' || invStatus === 'deleted' || invStatus === 'voided') return;
 
-    var issuedDate=null;
-    if(mainInv&&mainInv.issuedDate){
-      var raw=String(mainInv.issuedDate);
-      issuedDate=new Date(raw.length<=13?parseInt(raw)*(raw.length===10?1000:1):raw);
-      if(isNaN(issuedDate.getTime()))issuedDate=null;
+    var job = jobById[inv.jobId] || {};
+    var repId = job.soldById || job.accountManagerId || '';
+    var repName = repId ? (empMap[repId] || ('Rep ' + repId.slice(0,6))) : 'Unassigned';
+
+    var custName = inv.billingCustomerName || job.billingCustomerName || job.customerName || 'Unknown';
+
+    // Tag resolution — manual customerTags map is source of truth
+    var assignedTag = customerTags[custName] || '';
+    var tagType = assignedTag || 'none';
+    var tagLabel = assignedTag === 'house' ? 'House' : (assignedTag === 'rep' ? 'Rep' : 'Untagged');
+    var rate = RATES[tagType] || RATES.rep || 5;
+
+    // Commission base = invoice subtotal (before tax)
+    var subtotal = Number(inv.subtotal) || 0;
+    var commission = subtotal * (rate/100);
+
+    // Date parsing — issuedDate is usually ISO or Unix timestamp string
+    var issuedDate = null;
+    if(inv.issuedDate){
+      var d = new Date(isNaN(inv.issuedDate) ? inv.issuedDate : Number(inv.issuedDate));
+      if(!isNaN(d.getTime())) issuedDate = d;
     }
-    var daysSince=issuedDate?Math.floor((today-issuedDate)/86400000):0;
-    var isClawback=!isPaid&&!!mainInv&&daysSince>=RATES.cbDays;
-    var isWarn=!isPaid&&!!mainInv&&daysSince>=60&&daysSince<RATES.cbDays;
 
-    return{
-      jobId:job.id,jobNumber:job.jobNumber||'—',
-      custName:job.billingCustomerName||(cust&&cust.name)||'—',
-      repId:repId,repName:repName,
-      tagType:tagType,tagLabel:tagLabel,
-      isComplete:isComplete,
-      invNumber:mainInv?mainInv.invoiceNumber:'—',
-      invoiced:!!mainInv,isPaid:isPaid,
-      issuedDate:issuedDate,
-      isClawback:isClawback,isWarn:isWarn,
-      commStatus:isPaid?'paid':isClawback?'clawback':'pending',
-      subtotal:subtotal,rate:rate,commission:commission,daysSince:daysSince,
-      amountQuoted:parseFloat(job.amountPreTaxQuoted||0),
-    };
+    var closedDate = null;
+    if(inv.closedDate){
+      var cd = new Date(isNaN(inv.closedDate) ? inv.closedDate : Number(inv.closedDate));
+      if(!isNaN(cd.getTime())) closedDate = cd;
+    }
+
+    // Status determination:
+    // - closed = Paid (earned, no clawback risk)
+    // - posted/exported/draft with days since issued > cbDays = Clawback
+    // - posted/exported/draft = Pending
+    var daysSinceIssued = issuedDate ? Math.floor((today - issuedDate) / 86400000) : 0;
+    var isPaid = invStatus === 'closed';
+    var isClawback = !isPaid && daysSinceIssued > cbDays;
+    var isWarn = !isPaid && !isClawback && daysSinceIssued > cbDays * 0.75;
+    var commStatus = isPaid ? 'paid' : (isClawback ? 'clawback' : 'pending');
+
+    enriched.push({
+      // IDs
+      invoiceId: inv.id,
+      jobId: job.id || inv.jobId,
+      customerId: inv.billingCustomerId || job.billingCustomerId,
+      repId: repId,
+
+      // Display fields
+      invNumber: inv.invoiceNumber || '—',
+      invSummary: inv.summary || inv.note || '',
+      jobNumber: job.jobNumber || inv.jobNumber || '—',
+      jobDesc: job.issueDescription || job.name || '',
+      jobStatus: job.status || '',
+      custName: custName,
+      repName: repName,
+
+      // Financial
+      subtotal: subtotal,
+      totalAmount: Number(inv.totalAmount) || 0,
+      taxAmount: Number(inv.taxAmount) || 0,
+      rate: rate,
+      commission: commission,
+
+      // Tag
+      tagType: tagType,
+      tagLabel: tagLabel,
+
+      // Status
+      invStatus: inv.status || '',
+      isPaid: isPaid,
+      isClawback: isClawback,
+      isWarn: isWarn,
+      commStatus: commStatus,
+
+      // Dates
+      issuedDate: issuedDate,
+      closedDate: closedDate,
+      daysSinceIssued: daysSinceIssued,
+    });
   });
 
-  // Filter to rep's own data if rep role
-  if(SESSION&&SESSION.role==='rep'&&SESSION.employeeId){
-    enriched=enriched.filter(function(r){return r.repId===SESSION.employeeId;});
-  }
+  // Sort by issued date descending (newest first)
+  enriched.sort(function(a,b){
+    if(!a.issuedDate && !b.issuedDate) return 0;
+    if(!a.issuedDate) return 1;
+    if(!b.issuedDate) return -1;
+    return b.issuedDate - a.issuedDate;
+  });
+
+  console.log('[CMS] Enriched commission records:', enriched.length);
+  console.log('[CMS] Sample:', enriched[0]);
 }
 
 function buildRepFilter(){
@@ -1258,17 +1347,15 @@ function getFiltered(){
   var repF=document.getElementById('f-rep').value;
   var tagF=document.getElementById('f-tag').value;
   var stF=document.getElementById('f-status').value;
-  var jbF=document.getElementById('f-job').value;
   var q=document.getElementById('f-search').value.toLowerCase().trim();
   var now=new Date();
+  var cy=now.getFullYear(),cm=now.getMonth();
 
   return (enriched||[]).filter(function(r){
-    if(r.issuedDate){
+    // PERIOD filter
+    if(r.issuedDate && period !== 'all'){
       var d=r.issuedDate;
-      var cy=now.getFullYear(), cm=now.getMonth();
-      // Last month
-      var lmS=new Date(cy,cm-1,1), lmE=new Date(cy,cm,0);
-      // Last quarter
+      var lmS=new Date(cy,cm-1,1),lmE=new Date(cy,cm,0);
       var cq=Math.floor(cm/3);
       var lqS=cq>0?new Date(cy,(cq-1)*3,1):new Date(cy-1,9,1);
       var lqE=cq>0?new Date(cy,cq*3,0):new Date(cy-1,11,31);
@@ -1284,202 +1371,172 @@ function getFiltered(){
         if(dt&&dt.value&&d>new Date(dt.value+'T23:59:59'))return false;
       }
     }
-    var invF=(document.getElementById('f-invoiced')||{}).value||'invoiced';
-    if(invF==='invoiced'&&!r.invoiced)return false;
-    if(invF==='notinvoiced'&&r.invoiced)return false;
+    // REP filter
     if(repF!=='all'&&r.repId!==repF)return false;
+    // TAG filter
     if(tagF!=='all'&&r.tagType!==tagF)return false;
+    // STATUS filter
     if(stF!=='all'&&r.commStatus!==stF)return false;
-    if(jbF!=='all'){
-      var js=(r.jobStatus||'').toLowerCase().replace(/\s/g,'');
-      if(jbF==='complete'&&js!=='complete'&&js!=='completed')return false;
-      if(jbF==='inprogress'&&js!=='inprogress')return false;
-      if(jbF==='open'&&js!=='open')return false;
-      if(jbF==='cancelled'&&js!=='cancelled'&&js!=='canceled')return false;
-    }
+    // CLAWBACKS ONLY toggle
     if(cbOnly&&!r.isClawback)return false;
-    if(q&&!(r.custName.toLowerCase().includes(q)||r.jobNumber.toLowerCase().includes(q)||r.invNumber.toLowerCase().includes(q)||(SESSION.role==='admin'&&r.repName.toLowerCase().includes(q))))return false;
+    // SEARCH
+    if(q){
+      var hay=(r.custName+' '+r.jobNumber+' '+r.jobDesc+' '+r.invNumber+' '+r.invSummary+' '+r.repName).toLowerCase();
+      if(!hay.includes(q))return false;
+    }
     return true;
-  }).sort(function(a,b){
-    var av=a[sortCol],bv=b[sortCol];
-    if(av==null)av='';if(bv==null)bv='';
-    if(av instanceof Date&&bv instanceof Date)return sortDir==='asc'?av-bv:bv-av;
-    if(typeof av==='string'&&typeof bv==='string')return sortDir==='asc'?av.localeCompare(bv):bv.localeCompare(av);
-    return sortDir==='asc'?av-bv:bv-av;
   });
 }
 
 // ── RENDER ────────────────────────────────────────────────
 function renderDash(){
-  if(!enriched.length)return;
-  var rows=getFiltered();
-  var isAdmin=SESSION&&SESSION.role==='admin';
-  var invRows=rows.filter(function(r){return r.invoiced;});
-  var earned=invRows.filter(function(r){return r.isPaid;}).reduce(function(s,r){return s+r.commission;},0);
-  var pending=invRows.filter(function(r){return!r.isPaid&&!r.isClawback;}).reduce(function(s,r){return s+r.commission;},0);
-  var cbAmt=invRows.filter(function(r){return r.isClawback;}).reduce(function(s,r){return s+r.commission;},0);
-  var cbCnt=invRows.filter(function(r){return r.isClawback;}).length;
-  var totalSub=invRows.reduce(function(s,r){return s+r.subtotal;},0);
-  var completeCt=rows.filter(function(r){return r.isComplete;}).length;
+  var isAdmin = SESSION && SESSION.role === 'admin';
+  var rows = getFiltered();
 
-  document.getElementById('result-ct').textContent=rows.length+' of '+enriched.length+' jobs';
+  // ─── CALCULATIONS ────────────────────────────────────────────
+  var totalCommission = 0, earnedComm = 0, pendingComm = 0, clawbackComm = 0;
+  var paidCt = 0, pendingCt = 0, clawbackCt = 0;
+  var totalSubtotal = 0;
 
-  var html='<div>';
-
-  // KPIs
-  var invoicedCt=rows.filter(function(r){return r.invoiced;}).length;
-  html+='<div class="kpis">';
-  html+=kpi('Total Invoiced',fmt(totalSub),invoicedCt+' invoices','bl');
-  html+=kpi('Commission Due',fmt(earned+pending+cbAmt),'based on rates','pu');
-  html+=kpi('Earned',fmt(earned),'client has paid','gr');
-  html+=kpi('Pending',fmt(pending),'awaiting client','am');
-  html+=kpi('At Risk',fmt(cbAmt),cbCnt>0?cbCnt+' clawback':'none','rd');
-  html+=kpi('Jobs Shown',rows.length+'',completeCt+' complete · '+enriched.length+' total','');
-  html+='</div>';
-
-  // Leaderboard — admin only
-  if(isAdmin){
-    var byRep={};
-    rows.forEach(function(r){
-      if(!r.repId)return;
-      if(!byRep[r.repId])byRep[r.repId]={name:r.repName,jobs:0,done:0,earned:0,pending:0,cb:0};
-      byRep[r.repId].jobs++;
-      if(r.isComplete)byRep[r.repId].done++;
-      if(r.isPaid)byRep[r.repId].earned+=r.commission;
-      else if(r.isClawback)byRep[r.repId].cb+=r.commission;
-      else if(r.invoiced)byRep[r.repId].pending+=r.commission;
-    });
-    var repList=Object.entries(byRep).filter(function(e){return e&&e[0]&&e[1];})
-      .sort(function(a,b){return(b[1].earned+b[1].pending)-(a[1].earned+a[1].pending);});
-    if(repList.length){
-      html+='<div class="sh"><span class="sh-t">Account Manager Performance</span><div class="sh-l"></div></div>';
-      html+='<div class="lbg">';
-      var aRep=document.getElementById('f-rep').value;
-      repList.forEach(function(e,i){
-        var id=e[0],d=e[1];
-        html+='<div class="lbc'+(aRep===id?' on':'')+'" onclick="filterRep(\''+esc(id)+'\')">'
-          +'<div class="lbc-rank">#'+(i+1)+'</div>'
-          +'<div class="lbc-name">'+esc(d.name)+'</div>'
-          +'<div class="lbc-stats">'
-          +'<div class="lbs"><div class="lbs-l">Earned</div><div class="lbs-v g">'+fmt(d.earned)+'</div></div>'
-          +'<div class="lbs"><div class="lbs-l">Pending</div><div class="lbs-v a">'+fmt(d.pending)+'</div></div>'
-          +'<div class="lbs"><div class="lbs-l">Jobs</div><div class="lbs-v">'+d.done+'/'+d.jobs+'</div></div>'
-          +'</div></div>';
-      });
-      html+='</div>';
-    }
-  }
-
-  // Clawback panel
-  var cbRows=rows.filter(function(r){return r.isClawback;});
-  if(cbRows.length){
-    html+='<div class="sh"><span class="sh-t" style="color:var(--red)">⚠ Clawback Tracker — '+cbRows.length+' at risk</span><div class="sh-l" style="background:var(--red-b)"></div></div>';
-    html+='<div class="card" style="border-color:var(--red-b)"><div class="twrap"><table><thead><tr>'
-      +'<th>Job #</th><th>Invoice #</th><th>Customer</th>'
-      +(isAdmin?'<th>Rep</th>':'')
-      +'<th>Tag</th><th class="n">Subtotal</th><th class="n">Commission</th><th>Issue Date</th><th class="n">Days Unpaid</th>'
-      +'</tr></thead><tbody>';
-    cbRows.forEach(function(r){
-      html+='<tr class="cb-row"><td class="nm">'+esc(r.jobNumber)+'</td><td>'+esc(r.invNumber)+'</td><td>'+esc(r.custName)+'</td>'
-        +(isAdmin?'<td>'+esc(r.repName)+'</td>':'')
-        +'<td>'+tBadge(r)+'</td><td class="n">'+fmt(r.subtotal)+'</td>'
-        +'<td class="n" style="color:var(--red);font-weight:700">'+fmt(r.commission)+'</td>'
-        +'<td>'+fd(r.issuedDate)+'</td><td class="n" style="color:var(--red);font-weight:700">'+r.daysSince+'</td></tr>';
-    });
-    html+='</tbody></table></div></div>';
-  }
-
-  // Rep summary (rep view only)
-  if(!isAdmin){
-    // Load rep's payout history
-    var repPayouts=allPayouts.filter(function(p){return p.repId===SESSION.employeeId;});
-    html+='<div class="sh"><span class="sh-t">Your Commission Summary</span><div class="sh-l"></div></div>';
-    html+='<div class="card"><div class="card-body" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;text-align:center">';
-    html+='<div><div class="kpi-l">Earned YTD</div><div class="kpi-v gr" style="font-size:28px">'+fmt(earned)+'</div></div>';
-    html+='<div><div class="kpi-l">Pending</div><div class="kpi-v am" style="font-size:28px">'+fmt(pending)+'</div></div>';
-    html+='<div><div class="kpi-l">Clawback Risk</div><div class="kpi-v rd" style="font-size:28px">'+fmt(cbAmt)+'</div></div>';
-    html+='</div></div>';
-
-    // Rep payout history
-    if(repPayouts.length){
-      html+='<div class="sh"><span class="sh-t">Your payout history</span><div class="sh-l"></div></div>';
-      html+='<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr>'
-        +'<th>Month</th><th class="n">Commission</th><th>Paid Date</th><th>Note</th>'
-        +'</tr></thead><tbody>';
-      repPayouts.sort(function(a,b){return new Date(b.paidDate)-new Date(a.paidDate);}).forEach(function(p){
-        html+='<tr>'
-          +'<td class="nm">'+esc(p.monthLabel||p.month)+'</td>'
-          +'<td class="n" style="color:var(--green);font-weight:700">'+fmt(p.amount)+'</td>'
-          +'<td>'+new Date(p.paidDate).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+'</td>'
-          +'<td style="color:var(--faint);font-size:11px">'+esc(p.note||'—')+'</td>'
-          +'</tr>';
-      });
-      html+='</tbody></table></div></div>';
-    }
-  }
-
-  // Main table
-  var cols=[
-    {k:'jobNumber',l:'Job'},
-    {k:'jobDesc',l:'Job Description'},
-    {k:'custName',l:'Customer'},
-    {k:'tagType',l:'Tag'},
-  ];
-  if(isAdmin) cols.push({k:'repName',l:'Account Manager'});
-  cols=cols.concat([
-    {k:'jobStatus',l:'Job Status'},
-    {k:'invNumber',l:'Invoice #'},
-    {k:'invDesc',l:'Invoice Desc'},
-    {k:'issuedDate',l:'Invoice Date'},
-    {k:'invStatus',l:'Invoice Status'},
-    {k:'invDesc',l:'Description'},
-    {k:'subtotal',l:'Subtotal',cls:'n'},
-    {k:'rate',l:'Rate',cls:'n'},
-    {k:'commission',l:'Commission',cls:'n'},
-    {k:'commStatus',l:'Payout'},
-  ]);
-
-  html+='<div class="sh"><span class="sh-t">Job Commission Detail</span><div class="sh-l"></div></div>';
-  html+='<div class="card"><div class="twrap"><table><thead><tr>';
-  cols.forEach(function(c){
-    var arrow=sortCol===c.k?(sortDir==='asc'?' ↑':' ↓'):'';
-    html+='<th class="'+(c.cls||'')+'" onclick="setSort(\''+c.k+'\')" style="'+(sortCol===c.k?'color:var(--text)':'')+'">'+c.l+arrow+'</th>';
-  });
-  html+='</tr></thead><tbody>';
-
-  if(!rows.length){
-    html+='<tr><td colspan="'+(cols.length)+'" style="text-align:center;color:var(--faint);padding:32px">No records match current filters</td></tr>';
-  }
   rows.forEach(function(r){
-    var rc=r.isClawback?' class="cb-row"':r.isWarn?' class="warn-row"':'';
-    html+='<tr'+rc+'>';
-    html+='<td class="nm">'+esc(r.jobNumber)+'</td>';
-    html+='<td>'+esc(r.custName)+'</td>';
-    html+='<td>'+tBadge(r)+'</td>';
-    if(isAdmin) html+='<td>'+esc(r.repName)+'</td>';
-    html+='<td>'+jsBadge(r.jobStatus)+'</td>';
-    html+='<td>'+(r.invoiced?esc(r.invNumber):'<span style="color:var(--faint)">—</span>')+'</td>';
-    html+='<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(r.invDesc||'')+'">'+(r.invoiced?esc(r.invDesc||'—'):'<span style="color:var(--faint)">—</span>')+'</td>';
-    html+='<td>'+fd(r.issuedDate)+'</td>';
-    html+='<td>'+invBadge(r.invStatus)+'</td>';
-    var desc=r.invDesc||r.jobDesc||'';
-    html+='<td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(desc)+'">'+(desc?esc(desc):'<span style="color:var(--faint)">—</span>')+'</td>';
-    html+='<td class="n">'+(r.invoiced?fmt(r.subtotal):'—')+'</td>';
-    html+='<td class="n">'+(r.invoiced?r.rate+'%':'—')+'</td>';
-    html+='<td class="n" style="font-weight:700;color:'+(r.isPaid?'var(--green)':r.isClawback?'var(--red)':r.invoiced?'var(--accent)':'var(--faint)')+'">'+( r.invoiced?fmt(r.commission):'—')+'</td>';
-    html+='<td>'+sBadge(r)+'</td>';
-    html+='</tr>';
+    totalCommission += r.commission;
+    totalSubtotal += r.subtotal;
+    if(r.isPaid){ earnedComm += r.commission; paidCt++; }
+    else if(r.isClawback){ clawbackComm += r.commission; clawbackCt++; }
+    else { pendingComm += r.commission; pendingCt++; }
   });
-  html+='</tbody></table></div>';
-  // Footer totals
-  html+='<div style="display:flex;gap:14px;justify-content:flex-end;padding:9px 14px;font-size:12px;color:var(--muted);flex-wrap:wrap;border-top:1px solid var(--border)">';
-  html+='<span>Subtotal: <strong style="color:var(--text);font-family:monospace">'+fmt(totalSub)+'</strong></span>';
-  html+='<span>Earned: <strong style="color:var(--green);font-family:monospace">'+fmt(earned)+'</strong></span>';
-  html+='<span>Pending: <strong style="color:var(--amber);font-family:monospace">'+fmt(pending)+'</strong></span>';
-  html+='<span>Clawback: <strong style="color:var(--red);font-family:monospace">'+fmt(cbAmt)+'</strong></span>';
-  html+='</div></div></div>';
 
-  document.getElementById('dash-body').innerHTML=html;
+  // Group by rep (for leaderboard)
+  var byRep = {};
+  rows.forEach(function(r){
+    if(!byRep[r.repId]) byRep[r.repId] = {
+      repId: r.repId, repName: r.repName,
+      earned: 0, pending: 0, clawback: 0, total: 0,
+      invCount: 0, customers: {}
+    };
+    byRep[r.repId].total += r.commission;
+    byRep[r.repId].invCount++;
+    byRep[r.repId].customers[r.custName] = true;
+    if(r.isPaid) byRep[r.repId].earned += r.commission;
+    else if(r.isClawback) byRep[r.repId].clawback += r.commission;
+    else byRep[r.repId].pending += r.commission;
+  });
+  var repList = Object.values(byRep).sort(function(a,b){ return b.total - a.total; });
+
+  // Group by customer (for audit trail)
+  var byCust = {};
+  rows.forEach(function(r){
+    if(!byCust[r.custName]) byCust[r.custName] = {
+      custName: r.custName,
+      earned: 0, pending: 0, clawback: 0, total: 0,
+      tagLabel: r.tagLabel, tagType: r.tagType,
+      invoices: []
+    };
+    byCust[r.custName].total += r.commission;
+    byCust[r.custName].invoices.push(r);
+    if(r.isPaid) byCust[r.custName].earned += r.commission;
+    else if(r.isClawback) byCust[r.custName].clawback += r.commission;
+    else byCust[r.custName].pending += r.commission;
+  });
+  var custList = Object.values(byCust).sort(function(a,b){ return b.total - a.total; });
+
+  // ─── BUILD HTML ──────────────────────────────────────────────
+  var html = '';
+
+  // HERO: big earnings card
+  html += '<div class="hero-earnings">';
+  html += '  <div class="hero-main">';
+  html += '    <div class="hero-label">Total Commission' + (isAdmin?'':' — You') + '</div>';
+  html += '    <div class="hero-amount">' + fmt(totalCommission) + '</div>';
+  html += '    <div class="hero-sub">' + rows.length + ' invoice' + (rows.length!==1?'s':'') + ' · ' + fmt(totalSubtotal) + ' invoiced</div>';
+  html += '  </div>';
+  html += '  <div class="hero-breakdown">';
+  html += '    <div class="hero-stat"><div class="hero-stat-v" style="color:#4ade80">' + fmt(earnedComm) + '</div><div class="hero-stat-l">Earned · ' + paidCt + '</div></div>';
+  html += '    <div class="hero-stat"><div class="hero-stat-v" style="color:#fbbf24">' + fmt(pendingComm) + '</div><div class="hero-stat-l">Pending · ' + pendingCt + '</div></div>';
+  html += '    <div class="hero-stat"><div class="hero-stat-v" style="color:#f87171">' + fmt(clawbackComm) + '</div><div class="hero-stat-l">Clawback · ' + clawbackCt + '</div></div>';
+  html += '  </div>';
+  html += '</div>';
+
+  // LEADERBOARD (admin only, > 1 rep)
+  if(isAdmin && repList.length > 1){
+    html += '<div class="section-h"><div class="section-t">Rep Breakdown</div><div class="section-l"></div></div>';
+    html += '<div class="rep-grid">';
+    repList.forEach(function(r, i){
+      html += '<div class="rep-card" onclick="filterRep(\''+esc(r.repId)+'\')">';
+      html += '  <div class="rep-rank">#' + (i+1) + '</div>';
+      html += '  <div class="rep-name">' + esc(r.repName) + '</div>';
+      html += '  <div class="rep-total">' + fmt(r.total) + '</div>';
+      html += '  <div class="rep-meta">' + r.invCount + ' invoices · ' + Object.keys(r.customers).length + ' customers</div>';
+      html += '  <div class="rep-bar">';
+      var tot = r.total || 1;
+      html += '    <div style="width:' + (r.earned/tot*100) + '%;background:#4ade80"></div>';
+      html += '    <div style="width:' + (r.pending/tot*100) + '%;background:#fbbf24"></div>';
+      html += '    <div style="width:' + (r.clawback/tot*100) + '%;background:#f87171"></div>';
+      html += '  </div>';
+      html += '  <div class="rep-split">';
+      html += '    <span><strong style="color:var(--green)">' + fmt(r.earned) + '</strong> earned</span>';
+      html += '    <span><strong style="color:var(--amber)">' + fmt(r.pending) + '</strong> pending</span>';
+      if(r.clawback > 0) html += '    <span><strong style="color:var(--red)">' + fmt(r.clawback) + '</strong> at risk</span>';
+      html += '  </div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  // AUDIT TRAIL — grouped by customer
+  html += '<div class="section-h"><div class="section-t">Commission Detail</div><div class="section-l"></div><div class="section-ct">' + rows.length + ' of ' + enriched.length + ' invoices</div></div>';
+
+  if(custList.length === 0){
+    html += '<div class="empty"><div class="empty-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><p>No invoices match your filters</p></div>';
+  } else {
+    html += '<div class="audit-wrap">';
+    custList.forEach(function(c){
+      var ti = c.tagType === 'house' ? 'b-house' : (c.tagType === 'rep' ? 'b-rep' : 'b-none');
+      html += '<div class="cust-block">';
+      html += '<div class="cust-hdr" onclick="toggleCust(this)">';
+      html += '  <div class="cust-name"><svg class="cust-chev" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>' + esc(c.custName) + '</div>';
+      html += '  <span class="badge ' + ti + '" style="margin-left:8px">' + esc(c.tagLabel) + '</span>';
+      html += '  <div class="cust-meta">' + c.invoices.length + ' invoice' + (c.invoices.length!==1?'s':'') + '</div>';
+      html += '  <div class="cust-total">';
+      if(c.earned > 0) html += '<span style="color:var(--green)">' + fmt(c.earned) + ' earned</span>';
+      if(c.pending > 0) html += '<span style="color:var(--amber)">' + fmt(c.pending) + ' pending</span>';
+      if(c.clawback > 0) html += '<span style="color:var(--red)">' + fmt(c.clawback) + ' at risk</span>';
+      html += '</div>';
+      html += '  <div class="cust-amt">' + fmt(c.total) + '</div>';
+      html += '</div>';
+      html += '<div class="cust-body">';
+      html += '<table class="audit-tbl"><thead><tr>';
+      html += '<th>Invoice</th><th>Issued</th><th>Job #</th><th>Job Description</th>';
+      if(isAdmin) html += '<th>Rep</th>';
+      html += '<th>Invoice Status</th><th class="n">Subtotal</th><th class="n">Rate</th><th class="n">Commission</th><th>Payout</th>';
+      html += '</tr></thead><tbody>';
+      c.invoices.forEach(function(r){
+        var rowCls = r.isClawback ? ' class="cb-row"' : (r.isWarn ? ' class="warn-row"' : '');
+        html += '<tr' + rowCls + '>';
+        html += '<td class="nm">' + esc(r.invNumber) + (r.invSummary ? '<div class="sub">'+esc(r.invSummary)+'</div>' : '') + '</td>';
+        html += '<td>' + fd(r.issuedDate) + (r.daysSinceIssued > 0 && !r.isPaid ? '<div class="sub">' + r.daysSinceIssued + ' days ago</div>' : '') + '</td>';
+        html += '<td class="nm">' + esc(r.jobNumber) + '</td>';
+        html += '<td class="desc" title="' + esc(r.jobDesc) + '">' + esc(r.jobDesc || '—') + '</td>';
+        if(isAdmin) html += '<td>' + esc(r.repName) + '</td>';
+        html += '<td>' + invBadge(r.invStatus) + '</td>';
+        html += '<td class="n">' + fmt(r.subtotal) + '</td>';
+        html += '<td class="n">' + r.rate + '%</td>';
+        html += '<td class="n commission">' + fmt(r.commission) + '</td>';
+        html += '<td>' + sBadge(r) + '</td>';
+        html += '</tr>';
+      });
+      html += '</tbody></table></div></div>';
+    });
+    html += '</div>';
+  }
+
+  document.getElementById('dash-body').innerHTML = html;
+  document.getElementById('result-ct').textContent = rows.length + ' of ' + enriched.length + ' invoices';
+}
+
+function toggleCust(el){
+  var block = el.closest('.cust-block');
+  block.classList.toggle('collapsed');
 }
 
 // ── USERS ─────────────────────────────────────────────────
