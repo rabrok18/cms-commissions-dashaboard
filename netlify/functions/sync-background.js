@@ -100,6 +100,23 @@ exports.handler = async (event) => {
     console.log('[Sync] Phase 2 done in', ((Date.now()-p2Start)/1000).toFixed(1), 's',
       '— employees:', emps.length, 'customers:', custs.length);
 
+    // ═══════════════════════════════════════════════════════════
+    // PHASE 3: Fetch customer tag master list (all defined tags in BuildOps)
+    // ═══════════════════════════════════════════════════════════
+    try {
+      const tagList = await fetchAllParallel(apiUrl, token, tenantId, '/v1/settings/custom-fields/customer-tags');
+      results.customerTagList = tagList;
+      console.log('[Sync] Customer tag definitions:', tagList.length);
+      if (tagList.length > 0) {
+        console.log('[Sync] Sample tag:', JSON.stringify(tagList[0]));
+        console.log('[Sync] All tag names:', tagList.map(t => t.tagName || t.name).filter(Boolean).join(', '));
+      }
+      await store.set('data:customerTagList', JSON.stringify(tagList));
+    } catch(e) {
+      errors.customerTagList = e.message;
+      console.error('[Sync] Tag list fetch failed:', e.message);
+    }
+
     // Log sample customer to inspect tag field
     if (custs.length > 0) {
       console.log('[Sync] Sample customer:', JSON.stringify(custs[0]).slice(0, 600));
