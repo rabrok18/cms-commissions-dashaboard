@@ -768,12 +768,13 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);background:var(
       </div>
       <div class="card-body">
         <div class="alert ainfo show" style="margin-bottom:14px">
-          <strong>BuildOps doesn't expose customer tags via API</strong> — assign them manually here. House accounts get the lower commission rate. Tags are saved to your browser and apply immediately to commission calculations.
+          <strong>Commercial customers only earn commission.</strong> Residential and other types are automatically excluded from commission calculations. Tag commercial customers as <strong>House</strong> (lower rate) or <strong>Rep</strong> (higher rate). Use the <em>Commercial Only</em> filter to focus on who matters.
         </div>
         <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
           <input class="fsrch" id="tag-search" placeholder="Search customers…" oninput="renderTagManager()" style="flex:1;min-width:200px">
           <select class="fsel" id="tag-filter" onchange="renderTagManager()">
             <option value="all">All</option>
+            <option value="commercial">Commercial Only</option>
             <option value="untagged">Untagged</option>
             <option value="house">House</option>
             <option value="rep">Rep</option>
@@ -1166,12 +1167,12 @@ async function syncNow(){
   var origHtml = btn ? btn.innerHTML : '';
   if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span> Syncing…';}
 
-  // Record the timestamp BEFORE starting, so we can detect when new data arrives
-  var startTime = Date.now();
-  var syncStatusBeforeStart = null;
+  // Get baseline state
+  var before = null;
   try{
-    var ssRes = await fetch(commBase()+'?action=syncStatus').then(function(r){return r.json();});
-    syncStatusBeforeStart = ssRes.syncedAt;
+    var baseline = await fetch(commBase()+'?action=syncStatus').then(function(r){return r.json();});
+    before = baseline.syncedAt;
+    console.log('[CMS] Baseline syncedAt:', before);
   }catch(e){}
 
   try{
@@ -1179,44 +1180,61 @@ async function syncNow(){
       method:'POST',
       headers:{'Content-Type':'application/json','X-Admin-Password':SESSION.password||''}
     });
+    console.log('[CMS] Sync trigger response:', res.status);
     if(res.status !== 202 && res.status !== 200){
       var text = await res.text();
-      throw new Error('Trigger failed ('+res.status+'): '+text.slice(0,150));
+      throw new Error('Trigger failed ('+res.status+'): '+text.slice(0,200));
     }
-    console.log('[CMS] Sync triggered, polling for completion…');
-    if(btn) btn.innerHTML = '<span class="spin"></span> Syncing…';
 
-    // Poll every 5s for up to 3 minutes
+    console.log('[CMS] Sync triggered successfully. Waiting for completion…');
+    if(btn) btn.innerHTML = '<span class="spin"></span> Running…';
+
+    // Poll every 5s for up to 5 minutes
     var pollCount = 0;
-    var maxPolls = 36; // 3 minutes
+    var maxPolls = 60;
     var pollInterval = setInterval(async function(){
       pollCount++;
       try{
         var ss = await fetch(commBase()+'?action=syncStatus').then(function(r){return r.json();});
         updateSyncStatus(ss);
 
-        // Detect completion: new syncedAt timestamp different from before
-        var newSyncedAt = ss.syncedAt;
-        var completed = newSyncedAt && newSyncedAt !== syncStatusBeforeStart;
+        console.log('[CMS] Poll #'+pollCount+':', {
+          syncedAt: ss.syncedAt,
+          before: before,
+          statusRunning: ss.status && ss.status.running,
+          statusError: ss.status && ss.status.error,
+          errors: ss.errors
+        });
 
-        // Also check status object
-        var statusRunning = ss.status && ss.status.running;
-
-        if(completed || (!statusRunning && pollCount > 2)){
+        // Status shows an explicit error? Stop immediately
+        if(ss.status && ss.status.error){
           clearInterval(pollInterval);
-          console.log('[CMS] Sync complete. New timestamp:', newSyncedAt);
+          console.error('[CMS] Sync function failed:', ss.status.error);
+          alert('Sync failed: '+ss.status.error);
           if(btn){btn.disabled=false;btn.innerHTML=origHtml;}
-          // Force reload from cache
-          await loadFromCache();
-        } else if(pollCount >= maxPolls){
-          clearInterval(pollInterval);
-          console.warn('[CMS] Sync poll timeout after 3 minutes');
-          if(btn){btn.disabled=false;btn.innerHTML=origHtml;}
-          alert('Sync is taking longer than expected. Check Netlify function logs.');
+          return;
         }
-      }catch(e){ console.warn('Poll error:', e.message); }
+
+        // Completion: syncedAt has a new value
+        if(ss.syncedAt && ss.syncedAt !== before){
+          clearInterval(pollInterval);
+          console.log('[CMS] Sync complete! New timestamp:', ss.syncedAt);
+          if(btn){btn.disabled=false;btn.innerHTML=origHtml;}
+          await loadFromCache();
+          return;
+        }
+
+        // Timeout
+        if(pollCount >= maxPolls){
+          clearInterval(pollInterval);
+          console.warn('[CMS] Sync poll timeout');
+          if(btn){btn.disabled=false;btn.innerHTML=origHtml;}
+          alert('Sync did not complete within 5 minutes. Check Netlify → Logs → Functions → sync-background for errors.');
+        }
+      }catch(e){ console.warn('[CMS] Poll error:', e.message); }
     }, 5000);
   }catch(err){
+    console.error('[CMS] Sync failed:', err);
     alert('Sync failed: '+err.message);
     if(btn){btn.disabled=false;btn.innerHTML=origHtml;}
   }
@@ -1267,6 +1285,8 @@ function enrich(){
   var jobById = {};
   (jobs||[]).forEach(function(j){ if(j&&j.id) jobById[j.id] = j; });
 
+  var commercialCount = 0, residentialCount = 0, skippedNonCommercial = 0;
+
   // For each invoice, create an enriched commission record
   enriched = [];
   (invoices||[]).forEach(function(inv){
@@ -1274,6 +1294,14 @@ function enrich(){
     // Skip voided/deleted invoices — they don't earn commission
     var invStatus = (inv.status||'').toLowerCase();
     if(invStatus === 'void' || invStatus === 'deleted' || invStatus === 'voided') return;
+
+    // COMMERCIAL ONLY — skip residential/other customers
+    var custForType = custMap[inv.billingCustomerId] || custMap[(jobById[inv.jobId]||{}).billingCustomerId] || {};
+    var custType = (custForType.customerType || '').toLowerCase();
+    if(custType === 'commercial') commercialCount++;
+    else if(custType === 'residential') { residentialCount++; skippedNonCommercial++; return; }
+    else if(custType) { skippedNonCommercial++; return; } // Other types (industrial, etc) — skip
+    // Untyped customers still included (we just don't know yet)
 
     var job = jobById[inv.jobId] || {};
     // Priority: soldById (who sold it) > accountManagerId > ownerId
@@ -1319,14 +1347,21 @@ function enrich(){
       if(!isNaN(cd.getTime())) closedDate = cd;
     }
 
-    // Payment lookup — sum all payments applied to this invoice
-    var totalPaid = 0;
-    if(typeof paymentsByInvoice !== 'undefined' && paymentsByInvoice[inv.id]){
-      paymentsByInvoice[inv.id].forEach(function(p){ totalPaid += (Number(p.amount) || 0); });
-    }
+    // Balance check — use direct balance field if present, else compute
     var totalAmount = Number(inv.totalAmount) || 0;
-    var balance = totalAmount - totalPaid;
-    // Tolerance for floating point — within 1 cent = fully paid
+    var balance;
+    if(typeof inv.balance === 'number' || typeof inv.balance === 'string'){
+      balance = Number(inv.balance) || 0;
+    } else {
+      // Fall back to payments sum
+      var totalPaid = 0;
+      if(typeof paymentsByInvoice !== 'undefined' && paymentsByInvoice[inv.id]){
+        paymentsByInvoice[inv.id].forEach(function(p){ totalPaid += (Number(p.amount) || 0); });
+      }
+      balance = totalAmount - totalPaid;
+    }
+    var totalPaid = totalAmount - balance;
+    // Balance = 0 (within 1 cent tolerance) = fully paid
     var isFullyPaid = totalAmount > 0 && balance <= 0.01;
 
     // Status determination:
@@ -1391,6 +1426,7 @@ function enrich(){
   });
 
   console.log('[CMS] Enriched commission records:', enriched.length);
+  console.log('[CMS] Commercial:', commercialCount, '| Residential (skipped):', residentialCount, '| Other non-commercial (skipped):', skippedNonCommercial);
   console.log('[CMS] Sample:', enriched[0]);
 }
 
@@ -2321,17 +2357,25 @@ saveUser = async function(){
 
 // ── CUSTOMER TAG MANAGER ─────────────────────────────────
 function getUniqueCustomers(){
-  // Dedupe by ID primarily, but keep name for display and migration
+  // Show ALL customers so admin can tag them. Include customerType from custMap for filtering.
   var byId={};
   (jobs||[]).forEach(function(j){
     var id=j.billingCustomerId, name=j.billingCustomerName;
     if(!id||!name||name==='Unknown')return;
-    if(!byId[id]) byId[id]={id:id,name:name,jobCount:0,invoiceTotal:0};
+    if(!byId[id]){
+      var cust = custMap[id] || {};
+      byId[id]={
+        id:id, name:name,
+        customerType: cust.customerType || 'Unknown',
+        jobCount:0, invoiceTotal:0
+      };
+    }
     byId[id].jobCount++;
   });
-  (enriched||[]).forEach(function(r){
-    if(r.customerId && byId[r.customerId]){
-      byId[r.customerId].invoiceTotal += (r.subtotal||0);
+  // Invoice totals from ALL invoices (not just enriched — tag manager shows everything)
+  (invoices||[]).forEach(function(inv){
+    if(inv.billingCustomerId && byId[inv.billingCustomerId]){
+      byId[inv.billingCustomerId].invoiceTotal += (Number(inv.subtotal)||0);
     }
   });
   return Object.values(byId).sort(function(a,b){return b.invoiceTotal-a.invoiceTotal;});
@@ -2344,6 +2388,7 @@ function renderTagManager(){
   custs=custs.filter(function(c){
     if(q&&!c.name.toLowerCase().includes(q))return false;
     var tag=customerTags[c.id]||customerTags[c.name]||'';
+    if(filter==='commercial'&&(c.customerType||'').toLowerCase()!=='commercial')return false;
     if(filter==='untagged'&&tag)return false;
     if(filter==='house'&&tag!=='house')return false;
     if(filter==='rep'&&tag!=='rep')return false;
@@ -2357,7 +2402,8 @@ function renderTagManager(){
     var tag=customerTags[c.id]||customerTags[c.name]||'';
     var row=document.createElement('div');
     row.style.cssText='display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--line)';
-    row.innerHTML='<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(c.name)+'</div><div style="font-size:10px;color:var(--faint);margin-top:2px">'+c.jobCount+' jobs &middot; '+fmt(c.invoiceTotal)+' invoiced</div></div>';
+    var typeLabel = c.customerType && c.customerType !== 'Unknown' ? (' · <strong style="color:'+(c.customerType.toLowerCase()==='commercial'?'var(--blue)':'var(--muted)')+'">'+esc(c.customerType)+'</strong>') : '';
+    row.innerHTML='<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(c.name)+'</div><div style="font-size:10px;color:var(--faint);margin-top:2px">'+c.jobCount+' jobs &middot; '+fmt(c.invoiceTotal)+' invoiced'+typeLabel+'</div></div>';
     var sel=document.createElement('select');
     sel.style.cssText='border:1.5px solid var(--line);border-radius:6px;padding:4px 8px;font-family:inherit;font-size:11px;color:var(--text);background:var(--surface);outline:none;width:110px';
     sel.innerHTML='<option value=""'+(tag?'':' selected')+'>No Tag</option><option value="house"'+(tag==='house'?' selected':'')+'>House</option><option value="rep"'+(tag==='rep'?' selected':'')+'>Rep</option>';
