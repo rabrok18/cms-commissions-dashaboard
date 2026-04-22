@@ -17,8 +17,13 @@ exports.handler = async (event) => {
   const incomingAdmin = (event.headers && (event.headers['x-admin-password'] || event.headers['X-Admin-Password'])) || '';
   const isAdmin = adminPw && incomingAdmin === adminPw;
 
-  // Helper - safe Blobs store
+  // Helper - safe Blobs store (uses explicit creds if available)
+  const siteId    = process.env.NETLIFY_SITE_ID || process.env.SITE_ID || '';
+  const blobToken = process.env.NETLIFY_TOKEN || process.env.NETLIFY_ACCESS_TOKEN || '';
   function store() {
+    if (siteId && blobToken) {
+      return getStore({ name: 'commission', siteID: siteId, token: blobToken });
+    }
     return getStore({ name: 'commission', consistency: 'strong' });
   }
   async function blobGet(key) {
